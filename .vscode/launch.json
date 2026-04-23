@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "StudyFlow",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "StudyFlow (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "StudyFlow (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+        {
+            "name": "study_flowapp",
+            "cwd": "front_end\\study_flowapp",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "study_flowapp (profile mode)",
+            "cwd": "front_end\\study_flowapp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "study_flowapp (release mode)",
+            "cwd": "front_end\\study_flowapp",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
