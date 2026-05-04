@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'setting_ui.dart';
 import 'calendar_view_shell.dart';
 import 'linked_accounts_menu_ui.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CalendarMenuUi extends StatelessWidget {
   const CalendarMenuUi({super.key});
@@ -289,9 +291,35 @@ Future<String> callClaude(String prompt) async {
     return schedule;
   }
 
-  return 'Great question! Here are some tips to help you study more effectively: '
-      'break your material into smaller chunks, use active recall instead of '
-      'just rereading, and make sure to take regular breaks.';
+  String apiKey = 'AIzaSyDaWLpCcgQ1C_kNU0dJignXRgZA4DM2zEM';
+  String url =
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+
+  var response = await http.post(
+    Uri.parse(url),
+    headers: {
+      'Content-Type': 'application/json',
+      'Access-Control-Allow-Origin': '*',
+    },
+    body: jsonEncode({
+      'contents': [
+        {
+          'parts': [
+            {
+              'text':
+                  'You are a helpful study assistant. Answer this student question specifically and helpfully: $prompt',
+            },
+          ],
+        },
+      ],
+    }),
+  );
+
+  if (response.statusCode != 200) {
+    return 'API Error ${response.statusCode}: ${response.body}';
+  }
+  var data = jsonDecode(response.body);
+  return data['candidates'][0]['content']['parts'][0]['text'];
 }
 
 String _formatTime(int hour, int minute) {
