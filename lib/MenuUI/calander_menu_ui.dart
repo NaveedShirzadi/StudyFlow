@@ -291,9 +291,9 @@ Future<String> callClaude(String prompt) async {
     return schedule;
   }
 
-  String apiKey = 'AIzaSyDaWLpCcgQ1C_kNU0dJignXRgZA4DM2zEM';
+  String apiKey = goes here
   String url =
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+      
 
   var response = await http.post(
     Uri.parse(url),
