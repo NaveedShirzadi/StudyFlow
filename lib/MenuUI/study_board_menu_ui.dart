@@ -111,7 +111,7 @@ class _StudyBoardMenuUIState extends State<StudyBoardMenuUI> {
                           return Container(
                             margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.9),
+                              color: Colors.white.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: ListTile(

@@ -223,8 +223,9 @@ Future<String> callClaude(String prompt) async {
     var subjectsMatch = subjectsRegex.firstMatch(prompt);
 
     if (daysMatch != null) days = int.tryParse(daysMatch.group(1)!) ?? 5;
-    if (hoursMatch != null)
+    if (hoursMatch != null) {
       hoursPerDay = int.tryParse(hoursMatch.group(1)!) ?? 4;
+    }
     if (subjectsMatch != null) {
       subjects = subjectsMatch
           .group(1)!
