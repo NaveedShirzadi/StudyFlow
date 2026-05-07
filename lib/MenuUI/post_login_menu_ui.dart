@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'calander_menu_ui.dart';
 import 'study_board_menu_ui.dart';
+import '../study_mode/study_mode_page.dart';
 
 class PostLoginMenuUI extends StatelessWidget {
   const PostLoginMenuUI({super.key});
@@ -76,7 +77,7 @@ class PostLoginMenuUI extends StatelessWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const StudyBoardMenuUI(),
+                            builder: (context) => const StudyModePage(),
                           ),
                         );
                       },
