@@ -153,10 +153,7 @@ class LoginPage extends StatelessWidget {
                 Row(
                   children: [
                     const Expanded(
-                      child: Divider(
-                        height: 1,
-                        color: Colors.white,
-                      ),
+                      child: Divider(height: 1, color: Colors.white),
                     ),
                     SizedBox(width: size.width * 0.02),
                     const Text(
@@ -169,10 +166,7 @@ class LoginPage extends StatelessWidget {
                     ),
                     SizedBox(width: size.width * 0.02),
                     const Expanded(
-                      child: Divider(
-                        height: 1,
-                        color: Colors.white,
-                      ),
+                      child: Divider(height: 1, color: Colors.white),
                     ),
                   ],
                 ),

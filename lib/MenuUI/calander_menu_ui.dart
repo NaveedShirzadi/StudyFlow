@@ -208,7 +208,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
   }
 }
 
-Future<String> callClaude(String prompt) async {
+Future<String> callGroq(String prompt) async {
   if (prompt.contains('study schedule')) {
     int days = 5;
     int hoursPerDay = 4;
@@ -279,20 +279,13 @@ Future<String> callClaude(String prompt) async {
       schedule += '\n';
     }
 
-    schedule += 'Study Tips:\n';
-    for (String subject in subjects) {
-      schedule += '- $subject: review notes and do practice problems daily\n';
-    }
-    schedule += '- Take short breaks between subjects\n';
-    schedule += '- Stay hydrated and get enough sleep\n';
-
     return schedule;
   }
 
-  String apiKey = 'api key goes here';
+  String apiKey = 'api code here';
 
   var response = await http.post(
-    Uri.parse('link goes here'),
+    Uri.parse('api link here'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $apiKey',
@@ -364,7 +357,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
     setState(() => isLoading = true);
 
     try {
-      String response = await callClaude(prompt);
+      String response = await callGroq(prompt);
       setState(() => result = response);
     } catch (e) {
       setState(() => result = 'Something went wrong: $e');
@@ -478,7 +471,7 @@ class _AiAssistantSheetState extends State<_AiAssistantSheet> {
         'You are a helpful study assistant. The student says: $userMessage';
 
     try {
-      String response = await callClaude(prompt);
+      String response = await callGroq(prompt);
       setState(() => messages.add({'role': 'ai', 'text': response}));
     } catch (e) {
       setState(

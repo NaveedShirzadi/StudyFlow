@@ -59,14 +59,14 @@ class LinkedAccountsMenuUi extends StatelessWidget {
                 height: buttonHeight,
                 child: ElevatedButton(
                   onPressed: () {
-                    // Claude action here
+                    // Groq action here
                   },
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text('Claude', style: TextStyle(fontSize: 18)),
+                  child: const Text('Groq', style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],
