@@ -2,8 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-
-
 class LockInPage extends StatefulWidget {
 
   final int sessionMinutes;
@@ -26,6 +24,7 @@ class _LockInPageState extends State<LockInPage> {
   Timer? timer;
 
   bool isBreak = false;
+  bool isPaused = false;
 
   final int studyTime = 1500;
   final int breakTime = 300;
@@ -96,14 +95,33 @@ class _LockInPageState extends State<LockInPage> {
     );
   }
 
+  void pauseTimer() {
+
+    timer?.cancel();
+
+    setState(() {
+      isPaused = true;
+    });
+  }
+
+  void resumeTimer() {
+
+    startTimer();
+
+    setState(() {
+      isPaused = false;
+    });
+  }
+
   void resetTimer() {
 
     timer?.cancel();
 
     setState(() {
 
-      seconds = studyTime;
+      seconds = widget.sessionMinutes * 60;
       isBreak = false;
+      isPaused = false;
     });
 
     startTimer();
@@ -172,7 +190,7 @@ class _LockInPageState extends State<LockInPage> {
 
                       BoxShadow(
                         color:
-                            Colors.cyanAccent.withValues(alpha:0.8),
+                            Colors.cyanAccent.withValues(alpha: 0.8),
                         blurRadius: 35,
                         spreadRadius: 8,
                       ),
@@ -228,7 +246,8 @@ class _LockInPageState extends State<LockInPage> {
 
                 Row(
 
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment:
+                      MainAxisAlignment.center,
 
                   children: [
 
@@ -236,54 +255,118 @@ class _LockInPageState extends State<LockInPage> {
 
                       style: ElevatedButton.styleFrom(
 
-                        backgroundColor: Colors.cyanAccent,
+                        backgroundColor:
+                            Colors.cyanAccent,
 
-                        foregroundColor: Colors.black,
+                        foregroundColor:
+                            Colors.black,
 
-                        padding: const EdgeInsets.symmetric(
+                        padding:
+                            const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 16,
                         ),
 
                         elevation: 10,
 
-                        shape: RoundedRectangleBorder(
+                        shape:
+                            RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(20),
+                              BorderRadius.circular(
+                                  20),
                         ),
                       ),
 
                       onPressed: resetTimer,
 
-                      icon: const Icon(Icons.restart_alt),
+                      icon: const Icon(
+                        Icons.restart_alt,
+                      ),
 
                       label: const Text(
-                        "Restart Session",
+                        "Restart",
 
                         style: TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight:
+                              FontWeight.bold,
                         ),
                       ),
                     ),
 
-                    const SizedBox(width: 25),
+                    const SizedBox(width: 20),
 
                     ElevatedButton.icon(
 
                       style: ElevatedButton.styleFrom(
 
-                        backgroundColor: Colors.white12,
+                        backgroundColor:
+                            Colors.white12,
 
-                        foregroundColor: Colors.white,
+                        foregroundColor:
+                            Colors.white,
 
-                        padding: const EdgeInsets.symmetric(
+                        padding:
+                            const EdgeInsets.symmetric(
                           horizontal: 24,
                           vertical: 16,
                         ),
 
-                        shape: RoundedRectangleBorder(
+                        shape:
+                            RoundedRectangleBorder(
                           borderRadius:
-                              BorderRadius.circular(20),
+                              BorderRadius.circular(
+                                  20),
+                        ),
+                      ),
+
+                      onPressed: () {
+
+                        if (isPaused) {
+
+                          resumeTimer();
+
+                        } else {
+
+                          pauseTimer();
+                        }
+                      },
+
+                      icon: Icon(
+                        isPaused
+                            ? Icons.play_arrow
+                            : Icons.pause,
+                      ),
+
+                      label: Text(
+                        isPaused
+                            ? "Resume"
+                            : "Pause",
+                      ),
+                    ),
+
+                    const SizedBox(width: 20),
+
+                    ElevatedButton.icon(
+
+                      style: ElevatedButton.styleFrom(
+
+                        backgroundColor:
+                            Colors.white12,
+
+                        foregroundColor:
+                            Colors.white,
+
+                        padding:
+                            const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+
+                        shape:
+                            RoundedRectangleBorder(
+                          borderRadius:
+                              BorderRadius.circular(
+                                  20),
                         ),
                       ),
 
@@ -292,7 +375,9 @@ class _LockInPageState extends State<LockInPage> {
                         Navigator.pop(context);
                       },
 
-                      icon: const Icon(Icons.logout),
+                      icon: const Icon(
+                        Icons.logout,
+                      ),
 
                       label: const Text(
                         "Exit",
