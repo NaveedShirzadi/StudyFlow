@@ -59,7 +59,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => const _AiAssistantSheet(),
+      builder: (context) => const AiAssistantSheet(),
     );
   }
 
@@ -371,14 +371,14 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   }
 }
 
-class _AiAssistantSheet extends StatefulWidget {
-  const _AiAssistantSheet();
+class AiAssistantSheet extends StatefulWidget {
+  const AiAssistantSheet();
 
   @override
-  State<_AiAssistantSheet> createState() => _AiAssistantSheetState();
+  State<AiAssistantSheet> createState() => AiAssistantSheetState();
 }
 
-class _AiAssistantSheetState extends State<_AiAssistantSheet> {
+class AiAssistantSheetState extends State<AiAssistantSheet> {
   TextEditingController messageController = TextEditingController();
   List<Map<String, String>> messages = [];
   bool isLoading = false;

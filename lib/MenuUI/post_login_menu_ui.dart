@@ -94,7 +94,16 @@ class PostLoginMenuUI extends StatelessWidget {
               bottom: 16,
               child: FloatingActionButton(
                 onPressed: () {
-                  // Add AI Assistant action here
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    builder: (context) => const AiAssistantSheet(),
+                  );
                 },
                 child: const Icon(Icons.smart_toy),
               ),
@@ -105,7 +114,6 @@ class PostLoginMenuUI extends StatelessWidget {
     );
   }
 }
-
 
 void main() {
   runApp(
