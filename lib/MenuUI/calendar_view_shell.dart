@@ -22,6 +22,22 @@ class CalendarViewShellState extends State<CalendarViewShell> {
   DateTime _selectedDate = DateTime.now();
   double _hourHeight = 80;
 
+  @override
+  void initState() {
+    super.initState();
+    calendarEventsNotifier.addListener(_onEventsChanged);
+  }
+
+  @override
+  void dispose() {
+    calendarEventsNotifier.removeListener(_onEventsChanged);
+    super.dispose();
+  }
+
+  void _onEventsChanged() {
+    setState(() {});
+  }
+
   bool get isInDayView => _mode == CalendarDisplayMode.day;
 
   void goToMonthView() {
@@ -85,17 +101,12 @@ class CalendarViewShellState extends State<CalendarViewShell> {
                   onDateSelected: _switchToDay,
                   onMonthChanged: _changeSelectedDate,
                 )
-              : ValueListenableBuilder(
-                  valueListenable: calendarEventsNotifier,
-                  builder: (context, events, child) {
-                    return DayCalendarView(
-                      selectedDate: _selectedDate,
-                      hourHeight: _hourHeight,
-                      onDateChanged: _changeSelectedDate,
-                      onBackToMonth: goToMonthView,
-                      events: events,
-                    );
-                  },
+              : DayCalendarView(
+                  selectedDate: _selectedDate,
+                  hourHeight: _hourHeight,
+                  onDateChanged: _changeSelectedDate,
+                  onBackToMonth: goToMonthView,
+                  eventsNotifier: calendarEventsNotifier,
                 ),
         ),
       ],

@@ -5,7 +5,7 @@ class DayCalendarView extends StatefulWidget {
   final double hourHeight;
   final ValueChanged<DateTime> onDateChanged;
   final VoidCallback onBackToMonth;
-  final Map<String, List<Map<String, String>>> events;
+  final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
 
   const DayCalendarView({
     super.key,
@@ -13,7 +13,7 @@ class DayCalendarView extends StatefulWidget {
     required this.hourHeight,
     required this.onDateChanged,
     required this.onBackToMonth,
-    required this.events,
+    required this.eventsNotifier,
   });
 
   @override
@@ -35,6 +35,17 @@ class _DayCalendarViewState extends State<DayCalendarView> {
       widget.selectedDate.day,
     );
     _pageController = PageController(initialPage: _initialPage);
+    widget.eventsNotifier.addListener(_onEventsChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.eventsNotifier.removeListener(_onEventsChanged);
+    super.dispose();
+  }
+
+  void _onEventsChanged() {
+    setState(() {});
   }
 
   DateTime _dateForPage(int page) {
@@ -86,7 +97,8 @@ class _DayCalendarViewState extends State<DayCalendarView> {
               return _SingleDayTimeline(
                 date: pageDate,
                 hourHeight: widget.hourHeight,
-                events: widget.events[dateKey] ?? [],
+                events: widget.eventsNotifier.value[dateKey] ?? [],
+                eventsNotifier: widget.eventsNotifier,
               );
             },
           ),
@@ -124,26 +136,55 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 }
 
-class _SingleDayTimeline extends StatelessWidget {
+class _SingleDayTimeline extends StatefulWidget {
   final DateTime date;
   final double hourHeight;
   final List<Map<String, String>> events;
+  final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
 
   const _SingleDayTimeline({
     required this.date,
     required this.hourHeight,
     required this.events,
+    required this.eventsNotifier,
   });
 
   @override
+  State<_SingleDayTimeline> createState() => _SingleDayTimelineState();
+}
+
+class _SingleDayTimelineState extends State<_SingleDayTimeline> {
+  @override
+  void initState() {
+    super.initState();
+    widget.eventsNotifier.addListener(_onEventsChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.eventsNotifier.removeListener(_onEventsChanged);
+    super.dispose();
+  }
+
+  void _onEventsChanged() {
+    setState(() {});
+  }
+
+  @override
   Widget build(BuildContext context) {
+    String dateKey =
+        '${widget.date.year}-${widget.date.month}-${widget.date.day}';
+    List<Map<String, String>> events =
+        widget.eventsNotifier.value[dateKey] ?? [];
     return ListView.builder(
-      key: ValueKey('${date.year}-${date.month}-${date.day}'),
+      key: ValueKey(
+        '${widget.date.year}-${widget.date.month}-${widget.date.day}',
+      ),
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
       itemCount: 24,
       itemBuilder: (context, index) {
         return SizedBox(
-          height: hourHeight,
+          height: widget.hourHeight,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -188,12 +229,12 @@ class _SingleDayTimeline extends StatelessWidget {
                                   0) /
                               60;
                           return Positioned(
-                            top: startMinuteFraction * hourHeight,
+                            top: startMinuteFraction * widget.hourHeight,
                             left: 0,
                             right: 0,
-                            height: (durationHours * hourHeight).clamp(
+                            height: (durationHours * widget.hourHeight).clamp(
                               20,
-                              hourHeight * 3,
+                              widget.hourHeight * 3,
                             ),
                             child: Container(
                               margin: const EdgeInsets.symmetric(
@@ -205,7 +246,12 @@ class _SingleDayTimeline extends StatelessWidget {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: const Color.fromARGB(255, 47, 158, 249),
+                                color:
+                                    (e['title'] ?? '').toLowerCase().contains(
+                                      'break',
+                                    )
+                                    ? const Color.fromARGB(255, 255, 171, 64)
+                                    : const Color.fromARGB(255, 47, 158, 249),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(

@@ -209,10 +209,10 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = 'key here';
+  String apiKey = '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';
 
   var response = await http.post(
-    Uri.parse('link here'),
+    Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $apiKey',
@@ -250,6 +250,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   TextEditingController daysController = TextEditingController();
   String result = '';
   bool isLoading = false;
+  DateTime selectedStartDate = DateTime.now();
 
   void handleGenerate() async {
     List<String> subjects = subjectsController.text
@@ -275,7 +276,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
     try {
       String response = await callGroq(prompt);
       setState(() => result = response);
-      _parseAndStoreEvents(response, days);
+      _parseAndStoreEvents(response, days, selectedStartDate);
     } catch (e) {
       setState(() => result = 'Something went wrong: $e');
     }
@@ -283,9 +284,8 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
     setState(() => isLoading = false);
   }
 
-  void _parseAndStoreEvents(String schedule, int days) {
+  void _parseAndStoreEvents(String schedule, int days, DateTime startDate) {
     calendarEventsNotifier.value = {};
-    DateTime startDate = DateTime.now();
 
     RegExp dayRegex = RegExp(r'Day (\d+):');
     RegExp timeRegex = RegExp(
@@ -387,6 +387,26 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
+            ),
+            const SizedBox(height: 12),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Start Date'),
+              subtitle: Text(
+                '${selectedStartDate.month}/${selectedStartDate.day}/${selectedStartDate.year}',
+              ),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: selectedStartDate,
+                  firstDate: DateTime.now(),
+                  lastDate: DateTime.now().add(const Duration(days: 365)),
+                );
+                if (picked != null) {
+                  setState(() => selectedStartDate = picked);
+                }
+              },
             ),
             const SizedBox(height: 16),
             SizedBox(
