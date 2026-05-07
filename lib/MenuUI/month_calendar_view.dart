@@ -38,55 +38,75 @@ class _MonthCalendarViewState extends State<MonthCalendarView> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return PageView.builder(
+      controller: _pageController,
+      onPageChanged: (page) => widget.onMonthChanged(_monthForPage(page)),
+      itemBuilder: (context, index) {
+        final month = _monthForPage(index);
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
             children: [
-              IconButton(icon: Icon(Icons.chevron_left, color: ThemeManager.contrastColor), onPressed: _goToPreviousMonth),
-              Text(
-                '${_monthName(widget.selectedDate.month)} ${widget.selectedDate.year}',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ThemeManager.contrastColor),
+              _MonthHeader(
+                month: month,
+                onPrevious: _goToPreviousMonth,
+                onNext: _goToNextMonth,
               ),
-              IconButton(icon: Icon(Icons.chevron_right, color: ThemeManager.contrastColor), onPressed: _goToNextMonth),
+              const SizedBox(height: 20),
+              const _WeekdayRow(),
+              const SizedBox(height: 10),
+              Expanded(
+                child: _MonthGrid(
+                  month: month,
+                  selectedDate: widget.selectedDate,
+                  onDateSelected: widget.onDateSelected,
+                ),
+              ),
             ],
           ),
+        );
+      },
+    );
+  }
+}
+
+class _MonthHeader extends StatelessWidget {
+  final DateTime month;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  const _MonthHeader({required this.month, required this.onPrevious, required this.onNext});
+
+  @override
+  Widget build(BuildContext context) {
+    final months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          '${months[month.month - 1]} ${month.year}',
+          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: ThemeManager.contrastColor),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _WeekdayLabel('M'), _WeekdayLabel('T'), _WeekdayLabel('W'),
-              _WeekdayLabel('T'), _WeekdayLabel('F'), _WeekdayLabel('S'), _WeekdayLabel('S'),
-            ],
-          ),
-        ),
-        Expanded(
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (page) => widget.onMonthChanged(_monthForPage(page)),
-            itemBuilder: (context, page) {
-              return _MonthGrid(
-                month: _monthForPage(page),
-                selectedDate: widget.selectedDate,
-                onDateSelected: widget.onDateSelected,
-              );
-            },
-          ),
+        Row(
+          children: [
+            IconButton(onPressed: onPrevious, icon: Icon(Icons.chevron_left, color: ThemeManager.contrastColor)),
+            IconButton(onPressed: onNext, icon: Icon(Icons.chevron_right, color: ThemeManager.contrastColor)),
+          ],
         ),
       ],
     );
   }
+}
 
-  String _monthName(int month) {
-    const List<String> names = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December',
-    ];
-    return names[month - 1];
+class _WeekdayRow extends StatelessWidget {
+  const _WeekdayRow();
+  @override
+  Widget build(BuildContext context) {
+    final days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: days.map((d) => _WeekdayLabel(d)).toList(),
+    );
   }
 }
 
@@ -99,18 +119,20 @@ class _MonthGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final firstDayOfMonth = DateTime(month.year, month.month, 1);
-    final leadingDays = (firstDayOfMonth.weekday - 1);
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0);
+    final daysInMonth = lastDay.day;
+    final startWeekday = firstDay.weekday % 7;
 
     return GridView.builder(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
       physics: const NeverScrollableScrollPhysics(),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 7, mainAxisSpacing: 8, crossAxisSpacing: 8,
+        crossAxisCount: 7, crossAxisSpacing: 8, mainAxisSpacing: 8,
       ),
       itemCount: 42,
       itemBuilder: (context, index) {
-        final day = firstDayOfMonth.add(Duration(days: index - leadingDays));
+        final dayOffset = index - startWeekday;
+        final day = firstDay.add(Duration(days: dayOffset));
         final isCurrentMonth = day.month == month.month;
         final isSelected = day.year == selectedDate.year && day.month == selectedDate.month && day.day == selectedDate.day;
 
@@ -121,8 +143,9 @@ class _MonthGrid extends StatelessWidget {
               color: isSelected
                   ? const Color.fromARGB(255, 47, 158, 249)
                   : isCurrentMonth
-                      ? ThemeManager.contrastColor.withOpacity(0.1)
-                      : ThemeManager.contrastColor.withOpacity(0.05),
+                      // FIXED: Lower alpha to 0.05 to prevent the "white overlap" look
+                      ? ThemeManager.contrastColor.withValues(alpha: 0.05)
+                      : ThemeManager.contrastColor.withValues(alpha: 0.02),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Center(
@@ -130,7 +153,7 @@ class _MonthGrid extends StatelessWidget {
                 '${day.day}',
                 style: TextStyle(
                   fontSize: 16, fontWeight: FontWeight.w600,
-                  color: isSelected ? Colors.white : isCurrentMonth ? ThemeManager.contrastColor : ThemeManager.contrastColor.withOpacity(0.4),
+                  color: isSelected ? Colors.white : isCurrentMonth ? ThemeManager.contrastColor : ThemeManager.contrastColor.withValues(alpha: 0.4),
                 ),
               ),
             ),
@@ -152,7 +175,7 @@ class _WeekdayLabel extends StatelessWidget {
       child: Center(
         child: Text(
           label,
-          style: TextStyle(color: ThemeManager.contrastColor.withOpacity(0.6), fontWeight: FontWeight.bold),
+          style: TextStyle(color: ThemeManager.contrastColor.withValues(alpha: 0.5), fontWeight: FontWeight.w500),
         ),
       ),
     );

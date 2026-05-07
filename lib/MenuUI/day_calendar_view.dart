@@ -99,34 +99,13 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 
   String _formattedDate(DateTime date) {
-    const List<String> weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    const List<String> months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
+    const List<String> weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const List<String> months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }
 
-class _SingleDayTimeline extends StatelessWidget {
+class _SingleDayTimeline extends StatefulWidget {
   final DateTime date;
   final double hourHeight;
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
@@ -157,23 +136,21 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
   }
 
   void _onEventsChanged() {
-    setState(() {});
+    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
-    String dateKey =
-        '${widget.date.year}-${widget.date.month}-${widget.date.day}';
-    List<Map<String, String>> events =
-        widget.eventsNotifier.value[dateKey] ?? [];
+    String dateKey = '${widget.date.year}-${widget.date.month}-${widget.date.day}';
+    List<Map<String, String>> events = widget.eventsNotifier.value[dateKey] ?? [];
 
     return ListView.builder(
-      key: ValueKey('${date.year}-${date.month}-${date.day}'),
+      key: ValueKey('${widget.date.year}-${widget.date.month}-${widget.date.day}'),
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
       itemCount: 24,
       itemBuilder: (context, index) {
         return SizedBox(
-          height: hourHeight,
+          height: widget.hourHeight,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -185,7 +162,8 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                     _formatHour(index),
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      color: widget.contrastColor.withOpacity(0.7),
+                      // FIXED: withOpacity -> withValues
+                      color: widget.contrastColor.withValues(alpha: 0.7),
                     ),
                   ),
                 ),
@@ -198,7 +176,8 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: widget.contrastColor.withOpacity(0.2),
+                            // FIXED: withOpacity -> withValues
+                            color: widget.contrastColor.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -206,50 +185,29 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                     ),
                     ...events
                         .where((e) {
-                          int eventHour =
-                              int.tryParse(e['startHour'] ?? '') ?? -1;
+                          int eventHour = int.tryParse(e['startHour'] ?? '') ?? -1;
                           return eventHour == index;
                         })
                         .map((e) {
-                          double startMinuteFraction =
-                              (int.tryParse(e['startMinute'] ?? '0') ?? 0) / 60;
-                          double durationHours =
-                              (double.tryParse(e['durationMinutes'] ?? '0') ??
-                                  0) /
-                              60;
-                          bool isBreak = (e['title'] ?? '')
-                              .toLowerCase()
-                              .contains('break');
+                          double startMinuteFraction = (int.tryParse(e['startMinute'] ?? '0') ?? 0) / 60;
+                          double durationHours = (double.tryParse(e['durationMinutes'] ?? '0') ?? 0) / 60;
+                          bool isBreak = (e['title'] ?? '').toLowerCase().contains('break');
+                          
                           return Positioned(
                             top: startMinuteFraction * widget.hourHeight,
                             left: 0,
                             right: 0,
-                            height: (durationHours * widget.hourHeight).clamp(
-                              20,
-                              widget.hourHeight * 3,
-                            ),
+                            height: (durationHours * widget.hourHeight).clamp(20, widget.hourHeight * 3),
                             child: Container(
-                              margin: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 1,
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
+                              margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: isBreak
-                                    ? const Color.fromARGB(255, 255, 171, 64)
-                                    : const Color.fromARGB(255, 47, 158, 249),
+                                color: isBreak ? const Color.fromARGB(255, 255, 171, 64) : const Color.fromARGB(255, 47, 158, 249),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 e['title'] ?? '',
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                                style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -267,11 +225,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
   }
 
   String _formatHour(int hour) {
-    final int displayHour = hour == 0
-        ? 12
-        : hour > 12
-        ? hour - 12
-        : hour;
+    final int displayHour = hour == 0 ? 12 : hour > 12 ? hour - 12 : hour;
     final String suffix = hour < 12 ? 'AM' : 'PM';
     return '$displayHour:00 $suffix';
   }

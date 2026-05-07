@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'month_calendar_view.dart';
 import 'day_calendar_view.dart';
 import 'theme_manager.dart';
+import 'calander_menu_ui.dart'; // FIX: Import to access global calendarEventsNotifier
 
 enum CalendarDisplayMode { month, day }
 
@@ -56,6 +57,7 @@ class CalendarViewShellState extends State<CalendarViewShell> {
                   hourHeight: _hourHeight,
                   onDateChanged: _changeSelectedDate,
                   onBackToMonth: goToMonthView,
+                  eventsNotifier: calendarEventsNotifier, // FIX: Pass the notifier here
                 ),
         ),
       ],

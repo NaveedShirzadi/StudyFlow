@@ -118,10 +118,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   alignment: Alignment.bottomLeft,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: contrast.withOpacity(0.1),
+                      // FIXED: withOpacity -> withValues
+                      backgroundColor: contrast.withValues(alpha: 0.1),
                       foregroundColor: contrast,
                       elevation: 0,
-                      side: BorderSide(color: contrast.withOpacity(0.2)),
+                      side: BorderSide(color: contrast.withValues(alpha: 0.2)),
                     ),
                     onPressed: () => Navigator.pop(context),
                     child: const Text('Return'),
@@ -135,26 +136,25 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  Widget _buildSettingCard(IconData icon, String title, Color textColor,
-      {String? subtitle, VoidCallback? onTap}) {
+  Widget _buildSettingCard(IconData icon, String title, Color textColor, {String? subtitle, VoidCallback? onTap}) {
     return Card(
-      color: ThemeManager.primaryColor.computeLuminance() > 0.5
-          ? Colors.white.withOpacity(0.4)
-          : Colors.black.withOpacity(0.2),
+      // FIXED: withOpacity -> withValues
+      color: ThemeManager.primaryColor.computeLuminance() > 0.5 
+          ? Colors.white.withValues(alpha: 0.4) 
+          : Colors.black.withValues(alpha: 0.2),
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
-        side: BorderSide(color: textColor.withOpacity(0.1)),
+        side: BorderSide(color: textColor.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: Icon(icon, color: textColor),
-        title: Text(title,
-            style: TextStyle(
-                color: textColor, fontWeight: FontWeight.w600, fontSize: 16)),
-        subtitle: subtitle != null
-            ? Text(subtitle, style: TextStyle(color: textColor.withOpacity(0.7)))
-            : null,
+        title: Text(title, style: TextStyle(
+          color: textColor, 
+          fontWeight: FontWeight.w600, 
+          fontSize: 16)),
+        subtitle: subtitle != null ? Text(subtitle, style: TextStyle(color: textColor.withValues(alpha: 0.7))) : null,
         onTap: onTap,
       ),
     );
@@ -163,6 +163,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
 class DualColorMixer extends StatefulWidget {
   const DualColorMixer({super.key});
+
   @override
   State<DualColorMixer> createState() => _DualColorMixerState();
 }
@@ -178,81 +179,87 @@ class _DualColorMixerState extends State<DualColorMixer> {
     bottomPos = _getOffsetFromColor(ThemeManager.primaryColor);
   }
 
-  Offset _getOffsetFromColor(Color color) {
+    Offset _getOffsetFromColor(Color color) {
     HSVColor hsv = HSVColor.fromColor(color);
-    // x = Hue, y = Value (inverted)
-    // If saturation is low, we assume it's on the left grayscale edge
-    double x = hsv.saturation < 0.1 ? 0 : hsv.hue / 360;
-    return Offset(x, 1 - hsv.value);
+    // x is Saturation (0.0 = white/left, 1.0 = full color/right)
+    // y is Value (0.0 = bright/top, 1.0 = black/bottom)
+    double x = hsv.saturation;
+    double y = 1.0 - hsv.value;
+    return Offset(x * 300, y * 300);
   }
 
   Color _getColorFromOffset(Offset offset) {
-    // If X is 0, Saturation is 0 (Grayscale). Otherwise, Saturation is high for vivid colors.
-    double saturation = offset.dx < 0.05 ? 0.0 : 0.85;
-    double value = 1.0 - offset.dy;
-    return HSVColor.fromAHSV(1.0, offset.dx * 360, saturation, value).toColor();
+    double saturation = (offset.dx / 300).clamp(0.0, 1.0);
+    double value = (1.0 - (offset.dy / 300)).clamp(0.0, 1.0);
+    
+    // Calculate Hue based on X position (0 to 360 degrees)
+    double hue = (offset.dx / 300) * 360; 
+    
+    return HSVColor.fromAHSV(1.0, hue, saturation, value).toColor();
+  }
+
+  void _updateColors() {
+    ThemeManager.updateColors(
+      _getColorFromOffset(bottomPos),
+      _getColorFromOffset(topPos),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return GestureDetector(
-          onPanUpdate: (details) {
-            RenderBox box = context.findRenderObject() as RenderBox;
-            Offset localPos = box.globalToLocal(details.globalPosition);
-            double x = (localPos.dx / constraints.maxWidth).clamp(0.0, 1.0);
-            double y = (localPos.dy / constraints.maxHeight).clamp(0.0, 1.0);
-
-            setState(() {
-              Offset newPos = Offset(x, y);
-              if ((newPos - topPos).distance < (newPos - bottomPos).distance) {
-                topPos = newPos;
-              } else {
-                bottomPos = newPos;
-              }
-              ThemeManager.updateColors(
-                  _getColorFromOffset(bottomPos), _getColorFromOffset(topPos));
-            });
-          },
-          child: Stack(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: CustomPaint(
-                  size: Size(constraints.maxWidth, constraints.maxHeight),
-                  painter: ColorSquarePainter(),
-                ),
-              ),
-              _dot(topPos, constraints, "TOP", _getColorFromOffset(topPos)),
-              _dot(bottomPos, constraints, "BTM", _getColorFromOffset(bottomPos)),
-            ],
-          ),
-        );
+    return GestureDetector(
+      onPanUpdate: (details) {
+        RenderBox box = context.findRenderObject() as RenderBox;
+        Offset local = box.globalToLocal(details.globalPosition);
+        setState(() {
+          if ((local - topPos).distance < (local - bottomPos).distance) {
+            topPos = Offset(local.dx.clamp(0, 300), local.dy.clamp(0, 300));
+          } else {
+            bottomPos = Offset(local.dx.clamp(0, 300), local.dy.clamp(0, 300));
+          }
+          _updateColors();
+        });
       },
+      child: Stack(
+        children: [
+          CustomPaint(
+            size: const Size(300, 300),
+            painter: ColorSquarePainter(),
+          ),
+          Positioned(
+            left: topPos.dx - 12,
+            top: topPos.dy - 12,
+            child: _ColorHandle(color: ThemeManager.secondaryColor, label: 'T'),
+          ),
+          Positioned(
+            left: bottomPos.dx - 12,
+            top: bottomPos.dy - 12,
+            child: _ColorHandle(color: ThemeManager.primaryColor, label: 'B'),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _dot(Offset pos, BoxConstraints constraints, String label, Color color) {
-    return Positioned(
-      left: pos.dx * constraints.maxWidth - 18,
-      top: pos.dy * constraints.maxHeight - 18,
-      child: Container(
-        width: 36,
-        height: 36,
-        decoration: BoxDecoration(
-          color: color,
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 3),
-          boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
-        ),
-        child: Center(
-            child: Text(label,
-                style: const TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                    shadows: [Shadow(blurRadius: 2)]))),
+class _ColorHandle extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _ColorHandle({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      decoration: BoxDecoration(
+        color: color,
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+      ),
+      child: Center(
+        child: Text(label, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
       ),
     );
   }
@@ -263,40 +270,38 @@ class ColorSquarePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final rect = Offset.zero & size;
 
-    // 1. Draw the rainbow spectrum
-    final hueGradient = LinearGradient(colors: [
-      const Color(0xFFFF0000), const Color(0xFFFFFF00),
-      const Color(0xFF00FF00), const Color(0xFF00FFFF),
-      const Color(0xFF0000FF), const Color(0xFFFF00FF),
-      const Color(0xFFFF0000),
-    ]).createShader(rect);
-    canvas.drawRect(rect, Paint()..shader = hueGradient);
-
-    // 2. Draw a white-to-transparent overlay on the very left to allow "White"
-    final whiteOverlay = LinearGradient(
+    // 1. Draw the Base Hue Spectrum (Right-aligned saturation)
+    // We start from white (Saturation 0) on the left to full color on the right.
+    final hueGradient = LinearGradient(
+      colors: const [
+        Color(0xFFFF0000), Color(0xFFFFFF00),
+        Color(0xFF00FF00), Color(0xFF00FFFF),
+        Color(0xFF0000FF), Color(0xFFFF00FF),
+        Color(0xFFFF0000),
+      ],
+    ).createShader(rect);
+    
+    // 2. Saturation Overlay (White on left, Transparent on right)
+    // This pushes the "color" to the right and keeps the left white.
+    final saturationGradient = LinearGradient(
       begin: Alignment.centerLeft,
       end: Alignment.centerRight,
-      stops: const [0.0, 0.15],
-      colors: [Colors.white, Colors.white.withOpacity(0)],
+      colors: const [Colors.white, Colors.transparent],
     ).createShader(rect);
-    canvas.drawRect(rect, Paint()..shader = whiteOverlay);
 
-    // 3. Draw a vertical Value (Brightness) Gradient: Top is transparent, Bottom is Black
-    // This allows the user to slide to the bottom for pure black.
+    // 3. Value/Brightness Overlay (Transparent on top, Black on bottom)
     final valueGradient = LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      colors: [Colors.black.withOpacity(0), Colors.black],
+      colors: [Colors.black.withValues(alpha: 0), Colors.black],
     ).createShader(rect);
-    
-    canvas.drawRect(
-      rect, 
-      Paint()
-        ..shader = valueGradient
-        ..blendMode = BlendMode.srcOver
-    );
+
+    // Draw layers
+    canvas.drawRect(rect, Paint()..shader = hueGradient);
+    canvas.drawRect(rect, Paint()..shader = saturationGradient);
+    canvas.drawRect(rect, Paint()..shader = valueGradient);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
