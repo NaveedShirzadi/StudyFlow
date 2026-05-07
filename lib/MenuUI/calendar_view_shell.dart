@@ -23,8 +23,11 @@ class CalendarViewShellState extends State<CalendarViewShell> {
   void goToMonthView() => setState(() => _mode = CalendarDisplayMode.month);
   void _switchToDay(DateTime date) => setState(() { _selectedDate = date; _mode = CalendarDisplayMode.day; });
   void _changeSelectedDate(DateTime date) => setState(() => _selectedDate = date);
-  void _zoomIn() => setState(() => _hourHeight = (_hourHeight + 20).clamp(60, 180));
-  void _zoomOut() => setState(() => _hourHeight = (_hourHeight - 20).clamp(40, 180));
+  void _zoomIn() => setState(() => _hourHeight = (_hourHeight + 20.0).clamp(60.0, 180.0));
+  void _zoomOut() => setState(() => _hourHeight = (_hourHeight - 20.0).clamp(40.0, 180.0));
+
+final ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier =
+    ValueNotifier({});
 
   @override
   Widget build(BuildContext context) {

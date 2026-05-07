@@ -106,6 +106,7 @@ class _DayCalendarViewState extends State<DayCalendarView> {
 }
 
 class _SingleDayTimeline extends StatefulWidget {
+class _SingleDayTimeline extends StatefulWidget {
   final DateTime date;
   final double hourHeight;
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;

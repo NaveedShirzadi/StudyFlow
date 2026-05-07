@@ -316,6 +316,9 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   String result = '';
   bool isLoading = false;
   DateTime selectedStartDate = DateTime.now();
+  
+final ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier =
+    ValueNotifier({});
 
   @override
   void dispose() {
