@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'calendar_view_shell.dart';
 import 'linked_accounts_menu_ui.dart';
 import 'setting_ui.dart';
+import 'study_board_menu_ui.dart';
 import 'theme_manager.dart';
 
 final ValueNotifier<Map<String, List<Map<String, String>>>>
@@ -79,7 +80,16 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
     } else if (value == 'Linked Accounts') {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const LinkedAccountsMenuUi()),
+        MaterialPageRoute(
+          builder: (context) => const LinkedAccountsMenuUi(),
+        ),
+      );
+    } else if (value == 'Study Mode') {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const StudyBoardMenuUI(),
+        ),
       );
     }
   }
@@ -168,8 +178,6 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
                   icon: Icon(Icons.more_vert, color: contrast),
                   onSelected: _handleMenuSelection,
                   itemBuilder: (BuildContext context) => [
-                    menuItem('Groups', 'Groups'),
-                    menuItem('Friends', 'Friends'),
                     menuItem('Linked Accounts', 'Linked Accounts'),
                     menuItem('Study Mode', 'Study Mode'),
                     menuItem('Settings', 'Settings'),
