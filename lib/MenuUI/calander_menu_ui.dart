@@ -209,10 +209,10 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = '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';
+  String apiKey = 'api here';
 
   var response = await http.post(
-    Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+    Uri.parse('link here'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $apiKey',
