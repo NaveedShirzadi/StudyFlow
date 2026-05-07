@@ -77,4 +77,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'studyflow-5a349.firebasestorage.app',
     iosBundleId: 'com.example.studyflow',
   );
+
 }

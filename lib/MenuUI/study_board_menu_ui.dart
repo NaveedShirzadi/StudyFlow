@@ -1,5 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'dart:typed_data';
+import 'pdf_ai_summary_page.dart';
+
+class UploadedPdf {
+  final String name;
+  final Uint8List bytes;
+
+  UploadedPdf({
+    required this.name,
+    required this.bytes,
+  });
+}
 
 class StudyBoardMenuUI extends StatefulWidget {
   static const routeName = '/studyBoardMenu';
@@ -14,17 +26,28 @@ class _StudyBoardMenuUIState extends State<StudyBoardMenuUI> {
   TextEditingController taskController = TextEditingController();
   List<Map<String, dynamic>> tasks = [];
 
-  List<String> uploadedPdfs = [];
+  List<UploadedPdf> uploadedPdfs = [];
 
   void uploadPdf() async {
-    FilePickerResult? result = await FilePicker.pickFiles(type: FileType.any);
+  final result = await FilePicker.platform.pickFiles(
+    type: FileType.custom,
+    allowedExtensions: ['pdf'],
+    withData: true,
+  );
 
-    if (result != null) {
-      setState(() {
-        uploadedPdfs.add(result.files.single.name);
-      });
-    }
+  if (result != null && result.files.single.bytes != null) {
+    final file = result.files.single;
+
+    setState(() {
+      uploadedPdfs.add(
+        UploadedPdf(
+          name: file.name,
+          bytes: file.bytes!,
+        ),
+      );
+    });
   }
+}
 
   void deletePdf(int index) {
     setState(() {
@@ -186,34 +209,49 @@ class _StudyBoardMenuUIState extends State<StudyBoardMenuUI> {
               ),
               const SizedBox(height: 12),
               if (uploadedPdfs.isNotEmpty)
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: uploadedPdfs.length,
-                  itemBuilder: (context, index) {
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.9),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.picture_as_pdf,
-                          color: Colors.red,
-                        ),
-                        title: Text(
-                          uploadedPdfs[index],
-                          style: const TextStyle(fontSize: 14),
-                        ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => deletePdf(index),
-                        ),
-                      ),
-                    );
-                  },
+  ListView.builder(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    itemCount: uploadedPdfs.length,
+    itemBuilder: (context, index) {
+      final pdf = uploadedPdfs[index];
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.9),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: ListTile(
+          leading: const Icon(
+            Icons.picture_as_pdf,
+            color: Colors.red,
+          ),
+          title: Text(
+            pdf.name,
+            style: const TextStyle(fontSize: 14),
+          ),
+          subtitle: const Text('Tap to summarize'),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => PdfAiSummaryPage(
+                  fileBytes: pdf.bytes,
+                  fileName: pdf.name,
                 ),
+              ),
+            );
+          },
+          trailing: IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () => deletePdf(index),
+          ),
+        ),
+      );
+    },
+  ),
+
             ],
           ),
         ),

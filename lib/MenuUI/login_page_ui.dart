@@ -90,6 +90,23 @@ class AuthService {
     return null; 
   }
 
+  static String? validatePhone(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Phone Number is Required.';
+    }
+
+    final phone = value.trim();
+
+    if(!phone.startsWith('+')) {
+      return 'Use international format, example +15555550123';
+    }
+
+    if(phone.length < 10) {
+      return 'Enter a valid phone number.';
+    }
+    return null;
+  }
+
   static String? validateName(String? value) {
     if (value == null || value.trim().isEmpty) return 'Name is Required.';
     return null;
@@ -276,6 +293,7 @@ class CreateAccountPage extends StatefulWidget {
                         prefixAsset: userIcon,
                       ),
                     ),
+
                     SizedBox(height: size.height * 0.022),
                     _buildLabel("Password"),
                     SizedBox(height: size.height * 0.008),
@@ -471,7 +489,6 @@ class _LoginPageState extends State<LoginPage> {
  final _emailCtrl = TextEditingController();
  final _passwordCtrl = TextEditingController();
 
-
  bool _obscurePassword = true;
  bool _isLoading = false;
 
@@ -517,13 +534,11 @@ class _LoginPageState extends State<LoginPage> {
      return;
    }
 
-
-   Navigator.pushReplacement(
-     context,
-     MaterialPageRoute(builder: (_) => const PostLoginMenuUI()),
-   );
- }
-
+  Navigator.pushReplacement(
+    context, 
+    MaterialPageRoute(builder: (_) => const PostLoginMenuUI())
+    );
+} 
 
  void _onCreateAccount() {
    Navigator.push(
