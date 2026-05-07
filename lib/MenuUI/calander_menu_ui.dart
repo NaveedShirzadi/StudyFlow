@@ -1,13 +1,52 @@
-import 'package:flutter/material.dart';
-import 'setting_ui.dart';
-import 'calendar_view_shell.dart';
-import 'linked_accounts_menu_ui.dart';
 import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// FIX: Define the global notifier used for schedule events
-final ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier = 
-    ValueNotifier({});
+import 'calendar_view_shell.dart';
+import 'linked_accounts_menu_ui.dart';
+import 'setting_ui.dart';
+import 'theme_manager.dart';
+
+final ValueNotifier<Map<String, List<Map<String, String>>>>
+    calendarEventsNotifier = ValueNotifier({});
+
+Color _contrastFor(Color color) {
+  return color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
+}
+
+Color _themedSurfaceColor(ThemeColors theme) {
+  final Color base = theme.secondary.computeLuminance() > 0.5
+      ? Colors.white
+      : const Color(0xFF121212);
+
+  return Color.alphaBlend(theme.secondary.withValues(alpha: 0.16), base);
+}
+
+Color _softTint(Color tint, Color surface, double alpha) {
+  return Color.alphaBlend(tint.withValues(alpha: alpha), surface);
+}
+
+InputDecoration _themedInputDecoration({
+  required String hintText,
+  required Color onSurface,
+  required Color primaryColor,
+}) {
+  final border = OutlineInputBorder(
+    borderRadius: BorderRadius.circular(12),
+    borderSide: BorderSide(color: onSurface.withValues(alpha: 0.28)),
+  );
+
+  return InputDecoration(
+    hintText: hintText,
+    hintStyle: TextStyle(color: onSurface.withValues(alpha: 0.58)),
+    enabledBorder: border,
+    focusedBorder: border.copyWith(
+      borderSide: BorderSide(color: primaryColor, width: 2),
+    ),
+    border: border,
+  );
+}
 
 class CalendarMenuUi extends StatelessWidget {
   const CalendarMenuUi({super.key});
@@ -49,14 +88,8 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Prevents white corners
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: const _ScheduleGeneratorSheet(),
-      ),
+      backgroundColor: Colors.transparent,
+      builder: (context) => const _ScheduleGeneratorSheet(),
     );
   }
 
@@ -64,14 +97,8 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent, // Prevents white corners
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: const AiAssistantSheet(),
-      ),
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AiAssistantSheet(),
     );
   }
 
@@ -89,157 +116,155 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
   Widget build(BuildContext context) {
     const double menuWidth = 140;
 
-    // FIX 1: Wrap Scaffold in the gradient container
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Color.fromARGB(255, 47, 158, 249),
-            Color.fromARGB(255, 197, 227, 252),
-          ],
-          begin: Alignment.bottomCenter,
-          end: Alignment.topCenter,
-        ),
-      ),
-      child: Scaffold(
-        // FIX 2: Make the Scaffold transparent so the gradient shows through
-        backgroundColor: Colors.transparent,
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: _handleBackPressed,
+    return ValueListenableBuilder<ThemeColors>(
+      valueListenable: ThemeManager.themeNotifier,
+      builder: (context, theme, _) {
+        final Color contrast = ThemeManager.contrastColor;
+        final Color menuSurface = _themedSurfaceColor(theme);
+        final Color menuTextColor = _contrastFor(menuSurface);
+
+        final Color bottomBarColor = contrast == Colors.black
+            ? const Color.fromARGB(230, 255, 255, 255)
+            : const Color.fromARGB(224, 0, 0, 0);
+
+        final Color bottomButtonColor =
+            contrast.withValues(alpha: contrast == Colors.black ? 0.08 : 0.14);
+
+        PopupMenuItem<String> menuItem(String value, String label) {
+          return PopupMenuItem(
+            value: value,
+            child: SizedBox(
+              width: menuWidth,
+              child: Text(
+                label,
+                style: TextStyle(color: menuTextColor),
+              ),
+            ),
+          );
+        }
+
+        return Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [theme.primary, theme.secondary],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+            ),
           ),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          centerTitle: true,
-          // FIX 3: Ensure icons are white so they are visible against the gradient
-          iconTheme: const IconThemeData(color: Colors.white),
-          actions: [
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              onSelected: _handleMenuSelection,
-              itemBuilder: (BuildContext context) => [
-                const PopupMenuItem(
-                  value: 'Groups',
-                  child: SizedBox(width: menuWidth, child: Text('Groups')),
-                ),
-                const PopupMenuItem(
-                  value: 'Friends',
-                  child: SizedBox(width: menuWidth, child: Text('Friends')),
-                ),
-                const PopupMenuItem(
-                  value: 'Linked Accounts',
-                  child: SizedBox(
-                    width: menuWidth,
-                    child: Text('Linked Accounts'),
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'Study Mode',
-                  child: SizedBox(width: menuWidth, child: Text('Study Mode')),
-                ),
-                const PopupMenuItem(
-                  value: 'Settings',
-                  child: SizedBox(width: menuWidth, child: Text('Settings')),
-                ),
-                const PopupMenuItem(
-                  value: 'Sign Out',
-                  child: SizedBox(width: menuWidth, child: Text('Sign Out')),
+          child: Scaffold(
+            backgroundColor: Colors.transparent,
+            appBar: AppBar(
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: contrast),
+                onPressed: _handleBackPressed,
+              ),
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              centerTitle: true,
+              iconTheme: IconThemeData(color: contrast),
+              actions: [
+                PopupMenuButton<String>(
+                  color: menuSurface,
+                  icon: Icon(Icons.more_vert, color: contrast),
+                  onSelected: _handleMenuSelection,
+                  itemBuilder: (BuildContext context) => [
+                    menuItem('Groups', 'Groups'),
+                    menuItem('Friends', 'Friends'),
+                    menuItem('Linked Accounts', 'Linked Accounts'),
+                    menuItem('Study Mode', 'Study Mode'),
+                    menuItem('Settings', 'Settings'),
+                    menuItem('Sign Out', 'Sign Out'),
+                  ],
                 ),
               ],
             ),
-          ],
-        ),
-        extendBodyBehindAppBar: false,
-        body: Stack(
-          children: [
-            CalendarViewShell(key: _calendarShellKey),
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 16,
-              child: SafeArea(
-                top: false,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 500),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(224, 0, 0, 0),
-                        borderRadius: BorderRadius.circular(28),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color.fromARGB(66, 0, 0, 0),
-                            blurRadius: 18,
-                            offset: Offset(0, 8),
+            extendBodyBehindAppBar: false,
+            body: Stack(
+              children: [
+                CalendarViewShell(key: _calendarShellKey),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 16,
+                  child: SafeArea(
+                    top: false,
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 500),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
                           ),
-                        ],
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: SizedBox(
-                              height: 30,
-                              child: ElevatedButton(
-                                onPressed: _generateSchedule,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color.fromARGB(
-                                    36,
-                                    255,
-                                    255,
-                                    255,
-                                  ),
-                                  foregroundColor: Colors.white,
-                                  elevation: 0,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(25),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'Generate Schedule',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                          decoration: BoxDecoration(
+                            color: bottomBarColor,
+                            borderRadius: BorderRadius.circular(28),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Color.fromARGB(66, 0, 0, 0),
+                                blurRadius: 18,
+                                offset: Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: SizedBox(
+                                  height: 30,
+                                  child: ElevatedButton(
+                                    onPressed: _generateSchedule,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: bottomButtonColor,
+                                      foregroundColor: contrast,
+                                      elevation: 0,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(25),
+                                      ),
+                                    ),
+                                    child: const Text(
+                                      'Generate Schedule',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Container(
-                            decoration: const BoxDecoration(
-                              color: Color.fromARGB(26, 255, 255, 255),
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              onPressed: _openAiAssistant,
-                              icon: const Icon(
-                                Icons.smart_toy,
-                                color: Colors.white,
+                              const SizedBox(width: 12),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: bottomButtonColor,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  onPressed: _openAiAssistant,
+                                  icon: Icon(
+                                    Icons.smart_toy,
+                                    color: contrast,
+                                  ),
+                                  tooltip: 'AI Assistant',
+                                ),
                               ),
-                              tooltip: 'AI Assistant',
-                            ),
+                            ],
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = 'YOUR_API_KEY'; // Replace with your actual key
+  String apiKey = 'YOUR_API_KEY';
 
   var response = await http.post(
     Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
@@ -248,7 +273,7 @@ Future<String> callGroq(String prompt) async {
       'Authorization': 'Bearer $apiKey',
     },
     body: jsonEncode({
-      'model': 'openai/gpt-oss-120b', // Adjusted to a valid Groq model
+      'model': 'openai/gpt-oss-120b',
       'messages': [
         {
           'role': 'system',
@@ -262,6 +287,7 @@ Future<String> callGroq(String prompt) async {
   if (response.statusCode != 200) {
     return 'API Error ${response.statusCode}: ${response.body}';
   }
+
   var data = jsonDecode(response.body);
   return data['choices'][0]['message']['content'];
 }
@@ -275,14 +301,23 @@ class _ScheduleGeneratorSheet extends StatefulWidget {
 }
 
 class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
-  TextEditingController subjectsController = TextEditingController();
-  TextEditingController hoursController = TextEditingController();
-  TextEditingController daysController = TextEditingController();
+  final TextEditingController subjectsController = TextEditingController();
+  final TextEditingController hoursController = TextEditingController();
+  final TextEditingController daysController = TextEditingController();
+
   String result = '';
   bool isLoading = false;
   DateTime selectedStartDate = DateTime.now();
 
-  void handleGenerate() async {
+  @override
+  void dispose() {
+    subjectsController.dispose();
+    hoursController.dispose();
+    daysController.dispose();
+    super.dispose();
+  }
+
+  Future<void> handleGenerate() async {
     List<String> subjects = subjectsController.text
         .split(',')
         .map((s) => s.trim())
@@ -299,19 +334,28 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
         'Subjects: ${subjects.join(', ')}. '
         'Hours per day: $hours. '
         'Number of days: $days. '
-        'Format it day by day with time blocks (e.g., Day 1: 09:00 AM - 10:00 AM: Subject) and include short breaks.';
+        'Format it day by day with time blocks '
+        '(e.g., Day 1: 09:00 AM - 10:00 AM: Subject) '
+        'and include short breaks.';
 
     setState(() => isLoading = true);
 
     try {
       String response = await callGroq(prompt);
+
+      if (!mounted) return;
+
       setState(() => result = response);
       _parseAndStoreEvents(response, days, selectedStartDate);
     } catch (e) {
-      setState(() => result = 'Something went wrong: $e');
-    }
+      if (!mounted) return;
 
-    setState(() => isLoading = false);
+      setState(() => result = 'Something went wrong: $e');
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   void _parseAndStoreEvents(String schedule, int days, DateTime startDate) {
@@ -338,9 +382,11 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
         int startHour = int.tryParse(timeMatch.group(1)!) ?? 0;
         int startMinute = int.tryParse(timeMatch.group(2)!) ?? 0;
         String startSuffix = timeMatch.group(3)!;
+
         int endHour = int.tryParse(timeMatch.group(4)!) ?? 0;
         int endMinute = int.tryParse(timeMatch.group(5)!) ?? 0;
         String endSuffix = timeMatch.group(6)!;
+
         String title = timeMatch.group(7)!.trim();
 
         if (startSuffix == 'PM' && startHour != 12) startHour += 12;
@@ -364,103 +410,176 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
         });
       }
     }
+
     calendarEventsNotifier.value = updated;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Generate Study Schedule',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return ValueListenableBuilder<ThemeColors>(
+      valueListenable: ThemeManager.themeNotifier,
+      builder: (context, theme, _) {
+        final Color surface = _themedSurfaceColor(theme);
+        final Color onSurface = _contrastFor(surface);
+        final Color buttonTextColor = _contrastFor(theme.primary);
+
+        return Container(
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
             ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: subjectsController,
-              decoration: InputDecoration(
-                hintText: 'Subjects (e.g. Math, History, Biology)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+          ),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: DefaultTextStyle(
+            style: TextStyle(color: onSurface),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Generate Study Schedule',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: subjectsController,
+                    style: TextStyle(color: onSurface),
+                    decoration: _themedInputDecoration(
+                      hintText: 'Subjects (e.g. Math, History, Biology)',
+                      onSurface: onSurface,
+                      primaryColor: theme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: hoursController,
+                    style: TextStyle(color: onSurface),
+                    keyboardType: TextInputType.number,
+                    decoration: _themedInputDecoration(
+                      hintText: 'Hours available per day (e.g. 4)',
+                      onSurface: onSurface,
+                      primaryColor: theme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: daysController,
+                    style: TextStyle(color: onSurface),
+                    keyboardType: TextInputType.number,
+                    decoration: _themedInputDecoration(
+                      hintText: 'Number of days (e.g. 5)',
+                      onSurface: onSurface,
+                      primaryColor: theme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(
+                      'Start Date',
+                      style: TextStyle(color: onSurface),
+                    ),
+                    subtitle: Text(
+                      '${selectedStartDate.month}/${selectedStartDate.day}/${selectedStartDate.year}',
+                      style: TextStyle(
+                        color: onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.calendar_today,
+                      color: theme.primary,
+                    ),
+                    onTap: () async {
+                      DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: selectedStartDate,
+                        firstDate: DateTime.now(),
+                        lastDate: DateTime.now().add(
+                          const Duration(days: 365),
+                        ),
+                        builder: (context, child) {
+                          return Theme(
+                            data: Theme.of(context).copyWith(
+                              colorScheme: ColorScheme.fromSeed(
+                                seedColor: theme.primary,
+                                brightness: surface.computeLuminance() > 0.5
+                                    ? Brightness.light
+                                    : Brightness.dark,
+                              ),
+                            ),
+                            child: child ?? const SizedBox.shrink(),
+                          );
+                        },
+                      );
+
+                      if (picked != null) {
+                        setState(() => selectedStartDate = picked);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : handleGenerate,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.primary,
+                        foregroundColor: buttonTextColor,
+                        disabledBackgroundColor:
+                            theme.primary.withValues(alpha: 0.45),
+                        disabledForegroundColor:
+                            buttonTextColor.withValues(alpha: 0.7),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: isLoading
+                          ? SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
+                                color: buttonTextColor,
+                              ),
+                            )
+                          : const Text('Generate'),
+                    ),
+                  ),
+                  if (result.isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: _softTint(theme.primary, surface, 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        result,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: onSurface,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: hoursController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Hours available per day (e.g. 4)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: daysController,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Number of days (e.g. 5)',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Start Date'),
-              subtitle: Text(
-                '${selectedStartDate.month}/${selectedStartDate.day}/${selectedStartDate.year}',
-              ),
-              trailing: const Icon(Icons.calendar_today),
-              onTap: () async {
-                DateTime? picked = await showDatePicker(
-                  context: context,
-                  initialDate: selectedStartDate,
-                  firstDate: DateTime.now(),
-                  lastDate: DateTime.now().add(const Duration(days: 365)),
-                );
-                if (picked != null) {
-                  setState(() => selectedStartDate = picked);
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : handleGenerate,
-                child: isLoading
-                    ? const CircularProgressIndicator()
-                    : const Text('Generate'),
-              ),
-            ),
-            if (result.isNotEmpty) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(result, style: const TextStyle(fontSize: 14)),
-              ),
-            ],
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -473,11 +592,18 @@ class AiAssistantSheet extends StatefulWidget {
 }
 
 class AiAssistantSheetState extends State<AiAssistantSheet> {
-  TextEditingController messageController = TextEditingController();
-  List<Map<String, String>> messages = [];
+  final TextEditingController messageController = TextEditingController();
+  final List<Map<String, String>> messages = [];
+
   bool isLoading = false;
 
-  void handleSend() async {
+  @override
+  void dispose() {
+    messageController.dispose();
+    super.dispose();
+  }
+
+  Future<void> handleSend() async {
     String userMessage = messageController.text.trim();
     if (userMessage.isEmpty) return;
 
@@ -493,93 +619,138 @@ class AiAssistantSheetState extends State<AiAssistantSheet> {
 
     try {
       String response = await callGroq(prompt);
+
+      if (!mounted) return;
+
       setState(() => messages.add({'role': 'ai', 'text': response}));
     } catch (e) {
+      if (!mounted) return;
+
       setState(
         () => messages.add({'role': 'ai', 'text': 'Something went wrong: $e'}),
       );
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
-
-    setState(() => isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    // FIX 4: Use a dynamic height (e.g., 75% of screen height) instead of fixed 500
-    // to prevent RenderFlex unbounded layout crashes when the keyboard appears.
-    return Container(
-      height: MediaQuery.of(context).size.height * 0.75,
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 20,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'AI Study Assistant',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+    return ValueListenableBuilder<ThemeColors>(
+      valueListenable: ThemeManager.themeNotifier,
+      builder: (context, theme, _) {
+        final Color surface = _themedSurfaceColor(theme);
+        final Color onSurface = _contrastFor(surface);
+        final Color userBubbleText = _contrastFor(theme.primary);
+        final Color aiBubbleColor = _softTint(theme.secondary, surface, 0.22);
+
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: BoxDecoration(
+            color: surface,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(24),
+            ),
           ),
-          const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                var message = messages[index];
-                bool isUser = message['role'] == 'user';
-                return Align(
-                  alignment: isUser
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    padding: const EdgeInsets.all(12),
-                    constraints: BoxConstraints(
-                      maxWidth: MediaQuery.of(context).size.width * 0.75,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isUser
-                          ? const Color.fromARGB(255, 47, 158, 249)
-                          : Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      message['text'] ?? '',
-                      style: TextStyle(
-                        color: isUser ? Colors.white : Colors.black,
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            children: [
+              Text(
+                'AI Study Assistant',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: onSurface,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: messages.length,
+                  itemBuilder: (context, index) {
+                    var message = messages[index];
+                    bool isUser = message['role'] == 'user';
+
+                    return Align(
+                      alignment: isUser
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.all(12),
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.of(context).size.width * 0.75,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isUser ? theme.primary : aiBubbleColor,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          message['text'] ?? '',
+                          style: TextStyle(
+                            color: isUser ? userBubbleText : onSurface,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              if (isLoading)
+                LinearProgressIndicator(
+                  color: theme.primary,
+                  backgroundColor: onSurface.withValues(alpha: 0.12),
+                ),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: messageController,
+                      style: TextStyle(color: onSurface),
+                      decoration: _themedInputDecoration(
+                        hintText: 'Ask me anything about studying...',
+                        onSurface: onSurface,
+                        primaryColor: theme.primary,
+                      ).copyWith(
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide(
+                            color: onSurface.withValues(alpha: 0.28),
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: BorderSide(
+                            color: theme.primary,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                );
-              },
-            ),
-          ),
-          if (isLoading) const LinearProgressIndicator(),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: messageController,
-                  decoration: InputDecoration(
-                    hintText: 'Ask me anything about studying...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                    ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: isLoading ? null : handleSend,
+                    icon: const Icon(Icons.send),
+                    color: theme.primary,
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              IconButton(
-                onPressed: isLoading ? null : handleSend,
-                icon: const Icon(Icons.send),
-                color: const Color.fromARGB(255, 47, 158, 249),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

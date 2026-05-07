@@ -213,7 +213,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                             ),
                           );
                         })
-                        .toList(),
+                        ,
                   ],
                 ),
               ),
