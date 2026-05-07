@@ -126,7 +126,7 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 }
 
-class _SingleDayTimeline extends StatelessWidget {
+class _SingleDayTimeline extends StatefulWidget {
   final DateTime date;
   final double hourHeight;
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
@@ -168,12 +168,12 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
         widget.eventsNotifier.value[dateKey] ?? [];
 
     return ListView.builder(
-      key: ValueKey('${date.year}-${date.month}-${date.day}'),
+      key: ValueKey('${widget.date.year}-${widget.date.month}-${widget.date.day}'),
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
       itemCount: 24,
       itemBuilder: (context, index) {
         return SizedBox(
-          height: hourHeight,
+          height: widget. hourHeight,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -225,7 +225,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                             left: 0,
                             right: 0,
                             height: (durationHours * widget.hourHeight).clamp(
-                              20,
+                              20.0,
                               widget.hourHeight * 3,
                             ),
                             child: Container(

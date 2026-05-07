@@ -7,6 +7,7 @@ import 'post_login_menu_ui.dart';
 
 String userIcon = "assets/images/UserIcon1.png";
 String keyIcon = "assets/images/key_icon.png";
+String Image1 = "assets/images/Image1.png";
 
 //Authorization Service 
 class AuthService {
