@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import 'timer_page.dart';
+
 
 class LockInPage extends StatefulWidget {
 

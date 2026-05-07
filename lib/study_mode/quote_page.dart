@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'countdown_page.dart';
+
 
 class QuotePage extends StatefulWidget {
 
@@ -48,8 +50,20 @@ class _QuotePageState
       const Duration(seconds: 5),
 
       () {
+         Navigator.pushReplacement(
 
-        // countdown page later
+      context,
+
+      MaterialPageRoute(
+
+        builder: (context) => CountdownPage(
+          sessionMinutes:
+              widget.sessionMinutes,
+          ambience: widget.ambience,
+        ),
+      ),
+    );
+
       },
     );
   }
