@@ -6,7 +6,6 @@ class DayCalendarView extends StatefulWidget {
   final double hourHeight;
   final ValueChanged<DateTime> onDateChanged;
   final VoidCallback onBackToMonth;
-<<<<<<< HEAD
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
 
   const DayCalendarView({
@@ -16,12 +15,6 @@ class DayCalendarView extends StatefulWidget {
     required this.onDateChanged,
     required this.onBackToMonth,
     required this.eventsNotifier,
-=======
-
-  const DayCalendarView({
-    super.key, required this.selectedDate, required this.hourHeight,
-    required this.onDateChanged, required this.onBackToMonth,
->>>>>>> cf087c2dbb6e18fe10459cb10d175137e8b6d958
   });
 
   @override
@@ -36,7 +29,11 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   @override
   void initState() {
     super.initState();
-    _anchorDate = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day);
+    _anchorDate = DateTime(
+      widget.selectedDate.year,
+      widget.selectedDate.month,
+      widget.selectedDate.day,
+    );
     _pageController = PageController(initialPage: _initialPage);
     widget.eventsNotifier.addListener(_onEventsChanged);
   }
@@ -52,7 +49,9 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 
   void _handlePageChanged(int page) {
-    final DateTime nextDate = _anchorDate.add(Duration(days: page - _initialPage));
+    final DateTime nextDate = _anchorDate.add(
+      Duration(days: page - _initialPage),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.onDateChanged(nextDate);
@@ -72,12 +71,19 @@ class _DayCalendarViewState extends State<DayCalendarView> {
               TextButton.icon(
                 onPressed: widget.onBackToMonth,
                 icon: Icon(Icons.calendar_view_month, color: textColor),
-                label: Text('Back to month', style: TextStyle(color: textColor)),
+                label: Text(
+                  'Back to month',
+                  style: TextStyle(color: textColor),
+                ),
               ),
               const Spacer(),
               Text(
                 _formattedDate(widget.selectedDate),
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: textColor,
+                ),
               ),
             ],
           ),
@@ -87,15 +93,14 @@ class _DayCalendarViewState extends State<DayCalendarView> {
             controller: _pageController,
             onPageChanged: _handlePageChanged,
             itemBuilder: (context, page) {
+              final DateTime pageDate = _anchorDate.add(
+                Duration(days: page - _initialPage),
+              );
               return _SingleDayTimeline(
-                date: _anchorDate.add(Duration(days: page - _initialPage)),
+                date: pageDate,
                 hourHeight: widget.hourHeight,
-<<<<<<< HEAD
-                events: widget.eventsNotifier.value[dateKey] ?? [],
                 eventsNotifier: widget.eventsNotifier,
-=======
                 contrastColor: textColor,
->>>>>>> cf087c2dbb6e18fe10459cb10d175137e8b6d958
               );
             },
           ),
@@ -105,8 +110,29 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 
   String _formattedDate(DateTime date) {
-    const List<String> weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-    const List<String> months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    const List<String> weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const List<String> months = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
     return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }
@@ -114,21 +140,15 @@ class _DayCalendarViewState extends State<DayCalendarView> {
 class _SingleDayTimeline extends StatefulWidget {
   final DateTime date;
   final double hourHeight;
-<<<<<<< HEAD
-  final List<Map<String, String>> events;
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
+  final Color contrastColor;
 
   const _SingleDayTimeline({
     required this.date,
     required this.hourHeight,
-    required this.events,
     required this.eventsNotifier,
+    required this.contrastColor,
   });
-=======
-  final Color contrastColor;
-
-  const _SingleDayTimeline({required this.date, required this.hourHeight, required this.contrastColor});
->>>>>>> cf087c2dbb6e18fe10459cb10d175137e8b6d958
 
   @override
   State<_SingleDayTimeline> createState() => _SingleDayTimelineState();
@@ -157,6 +177,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
         '${widget.date.year}-${widget.date.month}-${widget.date.day}';
     List<Map<String, String>> events =
         widget.eventsNotifier.value[dateKey] ?? [];
+
     return ListView.builder(
       key: ValueKey(
         '${widget.date.year}-${widget.date.month}-${widget.date.day}',
@@ -175,12 +196,14 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     _formatHour(index),
-                    style: TextStyle(fontWeight: FontWeight.w600, color: contrastColor.withOpacity(0.7)),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: widget.contrastColor.withOpacity(0.7),
+                    ),
                   ),
                 ),
               ),
               Expanded(
-<<<<<<< HEAD
                 child: Stack(
                   children: [
                     Container(
@@ -188,7 +211,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                       decoration: BoxDecoration(
                         border: Border(
                           top: BorderSide(
-                            color: Colors.grey.shade300,
+                            color: widget.contrastColor.withOpacity(0.2),
                             width: 1,
                           ),
                         ),
@@ -207,6 +230,9 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                               (double.tryParse(e['durationMinutes'] ?? '0') ??
                                   0) /
                               60;
+                          bool isBreak = (e['title'] ?? '')
+                              .toLowerCase()
+                              .contains('break');
                           return Positioned(
                             top: startMinuteFraction * widget.hourHeight,
                             left: 0,
@@ -225,10 +251,7 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color:
-                                    (e['title'] ?? '').toLowerCase().contains(
-                                      'break',
-                                    )
+                                color: isBreak
                                     ? const Color.fromARGB(255, 255, 171, 64)
                                     : const Color.fromARGB(255, 47, 158, 249),
                                 borderRadius: BorderRadius.circular(8),
@@ -247,13 +270,6 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
                         })
                         .toList(),
                   ],
-=======
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 2),
-                  decoration: BoxDecoration(
-                    border: Border(top: BorderSide(color: contrastColor.withOpacity(0.2), width: 1)),
-                  ),
->>>>>>> cf087c2dbb6e18fe10459cb10d175137e8b6d958
                 ),
               ),
             ],
@@ -264,7 +280,11 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
   }
 
   String _formatHour(int hour) {
-    final int displayHour = hour == 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    final int displayHour = hour == 0
+        ? 12
+        : hour > 12
+        ? hour - 12
+        : hour;
     final String suffix = hour < 12 ? 'AM' : 'PM';
     return '$displayHour:00 $suffix';
   }

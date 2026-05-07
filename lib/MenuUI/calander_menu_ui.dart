@@ -209,7 +209,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = 'api here';
+  String apiKey = 'key here';
 
   var response = await http.post(
     Uri.parse('link here'),
