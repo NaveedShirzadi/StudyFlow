@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'quote_page.dart';
 
 class MeditationPage extends StatefulWidget {
 
@@ -27,12 +28,24 @@ class _MeditationPageState
 
     Timer(
       const Duration(seconds: 5),
+() {
 
-      () {
+      Navigator.pushReplacement(
 
-        // next page later
-      },
-    );
+        context,
+
+        MaterialPageRoute(
+
+          builder: (context) => QuotePage(
+            sessionMinutes:
+                widget.sessionMinutes,
+            ambience: widget.ambience,
+          ),
+        ),
+      );
+    },
+  );
+      
   }
 
   @override
