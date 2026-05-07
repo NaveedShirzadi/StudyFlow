@@ -209,8 +209,6 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callClaude(String prompt) async {
-  await Future.delayed(const Duration(seconds: 2));
-
   if (prompt.contains('study schedule')) {
     int days = 5;
     int hoursPerDay = 4;
@@ -291,26 +289,22 @@ Future<String> callClaude(String prompt) async {
     return schedule;
   }
 
-   // String apiKey = goes here
-  String url =
-      
+  String apiKey = 'api key goes here';
 
   var response = await http.post(
-    Uri.parse(url),
+    Uri.parse('link goes here'),
     headers: {
       'Content-Type': 'application/json',
-      'Access-Control-Allow-Origin': '*',
+      'Authorization': 'Bearer $apiKey',
     },
     body: jsonEncode({
-      'contents': [
+      'model': 'openai/gpt-oss-120b',
+      'messages': [
         {
-          'parts': [
-            {
-              'text':
-                  'You are a helpful study assistant. Answer this student question specifically and helpfully: $prompt',
-            },
-          ],
+          'role': 'system',
+          'content': 'You are a helpful study assistant for college students.',
         },
+        {'role': 'user', 'content': prompt},
       ],
     }),
   );
@@ -319,7 +313,7 @@ Future<String> callClaude(String prompt) async {
     return 'API Error ${response.statusCode}: ${response.body}';
   }
   var data = jsonDecode(response.body);
-  return data['candidates'][0]['content']['parts'][0]['text'];
+  return data['choices'][0]['message']['content'];
 }
 
 String _formatTime(int hour, int minute) {

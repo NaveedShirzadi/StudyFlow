@@ -50,10 +50,7 @@ class LinkedAccountsMenuUi extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    'Canvas',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  child: const Text('Canvas', style: TextStyle(fontSize: 18)),
                 ),
               ),
               const SizedBox(height: 30),
@@ -69,10 +66,7 @@ class LinkedAccountsMenuUi extends StatelessWidget {
                       borderRadius: BorderRadius.circular(30),
                     ),
                   ),
-                  child: const Text(
-                    'Claude',
-                    style: TextStyle(fontSize: 18),
-                  ),
+                  child: const Text('Claude', style: TextStyle(fontSize: 18)),
                 ),
               ),
             ],

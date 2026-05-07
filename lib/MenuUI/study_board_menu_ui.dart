@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 
 class StudyBoardMenuUI extends StatefulWidget {
   static const routeName = '/studyBoardMenu';
@@ -12,6 +13,24 @@ class StudyBoardMenuUI extends StatefulWidget {
 class _StudyBoardMenuUIState extends State<StudyBoardMenuUI> {
   TextEditingController taskController = TextEditingController();
   List<Map<String, dynamic>> tasks = [];
+
+  List<String> uploadedPdfs = [];
+
+  void uploadPdf() async {
+    FilePickerResult? result = await FilePicker.pickFiles(type: FileType.any);
+
+    if (result != null) {
+      setState(() {
+        uploadedPdfs.add(result.files.single.name);
+      });
+    }
+  }
+
+  void deletePdf(int index) {
+    setState(() {
+      uploadedPdfs.removeAt(index);
+    });
+  }
 
   void addTask() {
     String taskName = taskController.text.trim();
@@ -141,6 +160,60 @@ class _StudyBoardMenuUIState extends State<StudyBoardMenuUI> {
                         },
                       ),
               ),
+              const SizedBox(height: 20),
+              const Text(
+                'My PDFs',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton.icon(
+                  onPressed: uploadPdf,
+                  icon: const Icon(Icons.upload_file),
+                  label: const Text('Upload PDF'),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (uploadedPdfs.isNotEmpty)
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: uploadedPdfs.length,
+                  itemBuilder: (context, index) {
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.9),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.picture_as_pdf,
+                          color: Colors.red,
+                        ),
+                        title: Text(
+                          uploadedPdfs[index],
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () => deletePdf(index),
+                        ),
+                      ),
+                    );
+                  },
+                ),
             ],
           ),
         ),
