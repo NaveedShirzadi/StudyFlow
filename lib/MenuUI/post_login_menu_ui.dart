@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-
 import 'calander_menu_ui.dart';
 import '../study_mode/study_mode_page.dart';
 import 'theme_manager.dart';
+import 'canvas_page.dart';
+
 
 class PostLoginMenuUI extends StatefulWidget {
   const PostLoginMenuUI({super.key});
@@ -57,6 +58,7 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
               children: [
                 Center(
                   child: Column(
+                    
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
@@ -108,6 +110,34 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                           },
                           child: const Text(
                             'Study Mode',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 50),
+
+                      SizedBox(
+                        width: _bubbleWidth,
+                        height: _bubbleHeight,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(35),
+                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                          ),
+                          onPressed: () async {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const RealCanvasPage(),
+                              ),
+                            );
+                            if (mounted) setState(() {});
+                          },
+                          child: const Text(
+                            'Connect Canvas',
                             style: TextStyle(fontSize: 18),
                           ),
                         ),
