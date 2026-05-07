@@ -42,10 +42,16 @@ class CalendarViewShellState extends State<CalendarViewShell> {
   bool get isInDayView => _mode == CalendarDisplayMode.day;
 
   void goToMonthView() => setState(() => _mode = CalendarDisplayMode.month);
-  void _switchToDay(DateTime date) => setState(() { _selectedDate = date; _mode = CalendarDisplayMode.day; });
-  void _changeSelectedDate(DateTime date) => setState(() => _selectedDate = date);
-  void _zoomIn() => setState(() => _hourHeight = (_hourHeight + 20).clamp(60, 180));
-  void _zoomOut() => setState(() => _hourHeight = (_hourHeight - 20).clamp(40, 180));
+  void _switchToDay(DateTime date) => setState(() {
+    _selectedDate = date;
+    _mode = CalendarDisplayMode.day;
+  });
+  void _changeSelectedDate(DateTime date) =>
+      setState(() => _selectedDate = date);
+  void _zoomIn() =>
+      setState(() => _hourHeight = (_hourHeight + 20).clamp(60, 180));
+  void _zoomOut() =>
+      setState(() => _hourHeight = (_hourHeight - 20).clamp(40, 180));
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +64,14 @@ class CalendarViewShellState extends State<CalendarViewShell> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 IconButton(
-                  onPressed: _zoomOut, icon: Icon(Icons.remove, color: ThemeManager.contrastColor), tooltip: 'Zoom out',
+                  onPressed: _zoomOut,
+                  icon: Icon(Icons.remove, color: ThemeManager.contrastColor),
+                  tooltip: 'Zoom out',
                 ),
                 IconButton(
-                  onPressed: _zoomIn, icon: Icon(Icons.add, color: ThemeManager.contrastColor), tooltip: 'Zoom in',
+                  onPressed: _zoomIn,
+                  icon: Icon(Icons.add, color: ThemeManager.contrastColor),
+                  tooltip: 'Zoom in',
                 ),
               ],
             ),
