@@ -3,6 +3,12 @@ import 'month_calendar_view.dart';
 import 'day_calendar_view.dart';
 import 'theme_manager.dart';
 
+ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier =
+    ValueNotifier({});
+
+Map<String, List<Map<String, String>>> get calendarEvents =>
+    calendarEventsNotifier.value;
+
 enum CalendarDisplayMode { month, day }
 
 class CalendarViewShell extends StatefulWidget {
@@ -51,11 +57,17 @@ class CalendarViewShellState extends State<CalendarViewShell> {
                   onDateSelected: _switchToDay,
                   onMonthChanged: _changeSelectedDate,
                 )
-              : DayCalendarView(
-                  selectedDate: _selectedDate,
-                  hourHeight: _hourHeight,
-                  onDateChanged: _changeSelectedDate,
-                  onBackToMonth: goToMonthView,
+              : ValueListenableBuilder(
+                  valueListenable: calendarEventsNotifier,
+                  builder: (context, events, child) {
+                    return DayCalendarView(
+                      selectedDate: _selectedDate,
+                      hourHeight: _hourHeight,
+                      onDateChanged: _changeSelectedDate,
+                      onBackToMonth: goToMonthView,
+                      events: events,
+                    );
+                  },
                 ),
         ),
       ],
