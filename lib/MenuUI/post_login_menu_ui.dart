@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'calander_menu_ui.dart';
-import 'study_board_menu_ui.dart';
+import '../study_mode/study_mode_page.dart';
 import 'theme_manager.dart';
 
 class PostLoginMenuUI extends StatefulWidget {
@@ -100,7 +100,7 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const StudyBoardMenuUI(),
+                                builder: (context) => const StudyModePage(),
                               ),
                             );
 

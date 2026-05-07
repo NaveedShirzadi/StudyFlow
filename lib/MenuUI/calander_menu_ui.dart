@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'calendar_view_shell.dart';
 import 'linked_accounts_menu_ui.dart';
 import 'setting_ui.dart';
-import 'study_board_menu_ui.dart';
+import '../study_mode/study_mode_page.dart';
 import 'theme_manager.dart';
 
 final ValueNotifier<Map<String, List<Map<String, String>>>>
@@ -88,7 +88,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => const StudyBoardMenuUI(),
+          builder: (context) => const StudyModePage(),
         ),
       );
     }
@@ -316,9 +316,6 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   String result = '';
   bool isLoading = false;
   DateTime selectedStartDate = DateTime.now();
-
-  final ValueNotifier<Map<String, List<Map<String, String>>>>
-  calendarEventsNotifier = ValueNotifier({});
 
   @override
   void dispose() {
