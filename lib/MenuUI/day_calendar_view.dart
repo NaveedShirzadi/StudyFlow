@@ -35,17 +35,6 @@ class _DayCalendarViewState extends State<DayCalendarView> {
       widget.selectedDate.day,
     );
     _pageController = PageController(initialPage: _initialPage);
-    widget.eventsNotifier.addListener(_onEventsChanged);
-  }
-
-  @override
-  void dispose() {
-    widget.eventsNotifier.removeListener(_onEventsChanged);
-    super.dispose();
-  }
-
-  void _onEventsChanged() {
-    setState(() {});
   }
 
   void _handlePageChanged(int page) {
@@ -137,7 +126,7 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 }
 
-class _SingleDayTimeline extends StatefulWidget {
+class _SingleDayTimeline extends StatelessWidget {
   final DateTime date;
   final double hourHeight;
   final ValueNotifier<Map<String, List<Map<String, String>>>> eventsNotifier;
@@ -179,14 +168,12 @@ class _SingleDayTimelineState extends State<_SingleDayTimeline> {
         widget.eventsNotifier.value[dateKey] ?? [];
 
     return ListView.builder(
-      key: ValueKey(
-        '${widget.date.year}-${widget.date.month}-${widget.date.day}',
-      ),
+      key: ValueKey('${date.year}-${date.month}-${date.day}'),
       padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
       itemCount: 24,
       itemBuilder: (context, index) {
         return SizedBox(
-          height: widget.hourHeight,
+          height: hourHeight,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
