@@ -5,6 +5,7 @@ class DayCalendarView extends StatefulWidget {
   final double hourHeight;
   final ValueChanged<DateTime> onDateChanged;
   final VoidCallback onBackToMonth;
+  final Map<String, List<Map<String, String>>> events;
 
   const DayCalendarView({
     super.key,
@@ -12,6 +13,7 @@ class DayCalendarView extends StatefulWidget {
     required this.hourHeight,
     required this.onDateChanged,
     required this.onBackToMonth,
+    required this.events,
   });
 
   @override
@@ -79,9 +81,12 @@ class _DayCalendarViewState extends State<DayCalendarView> {
             onPageChanged: _handlePageChanged,
             itemBuilder: (context, page) {
               final DateTime pageDate = _dateForPage(page);
+              String dateKey =
+                  '${pageDate.year}-${pageDate.month}-${pageDate.day}';
               return _SingleDayTimeline(
                 date: pageDate,
                 hourHeight: widget.hourHeight,
+                events: widget.events[dateKey] ?? [],
               );
             },
           ),
@@ -122,10 +127,12 @@ class _DayCalendarViewState extends State<DayCalendarView> {
 class _SingleDayTimeline extends StatelessWidget {
   final DateTime date;
   final double hourHeight;
+  final List<Map<String, String>> events;
 
   const _SingleDayTimeline({
     required this.date,
     required this.hourHeight,
+    required this.events,
   });
 
   @override
@@ -154,16 +161,67 @@ class _SingleDayTimeline extends StatelessWidget {
                 ),
               ),
               Expanded(
-                child: Container(
-                  margin: const EdgeInsets.only(bottom: 2),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: Colors.grey.shade300,
-                        width: 1,
+                child: Stack(
+                  children: [
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 2),
+                      decoration: BoxDecoration(
+                        border: Border(
+                          top: BorderSide(
+                            color: Colors.grey.shade300,
+                            width: 1,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
+                    ...events
+                        .where((e) {
+                          int eventHour =
+                              int.tryParse(e['startHour'] ?? '') ?? -1;
+                          return eventHour == index;
+                        })
+                        .map((e) {
+                          double startMinuteFraction =
+                              (int.tryParse(e['startMinute'] ?? '0') ?? 0) / 60;
+                          double durationHours =
+                              (double.tryParse(e['durationMinutes'] ?? '0') ??
+                                  0) /
+                              60;
+                          return Positioned(
+                            top: startMinuteFraction * hourHeight,
+                            left: 0,
+                            right: 0,
+                            height: (durationHours * hourHeight).clamp(
+                              20,
+                              hourHeight * 3,
+                            ),
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(
+                                horizontal: 4,
+                                vertical: 1,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color.fromARGB(255, 47, 158, 249),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                e['title'] ?? '',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          );
+                        })
+                        .toList(),
+                  ],
                 ),
               ),
             ],
@@ -177,8 +235,8 @@ class _SingleDayTimeline extends StatelessWidget {
     final int displayHour = hour == 0
         ? 12
         : hour > 12
-            ? hour - 12
-            : hour;
+        ? hour - 12
+        : hour;
     final String suffix = hour < 12 ? 'AM' : 'PM';
     return '$displayHour:00 $suffix';
   }

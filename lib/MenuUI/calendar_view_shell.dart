@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'month_calendar_view.dart';
 import 'day_calendar_view.dart';
 
+Map<String, List<Map<String, String>>> calendarEvents = {};
+
 enum CalendarDisplayMode { month, day }
 
 class CalendarViewShell extends StatefulWidget {
@@ -84,6 +86,7 @@ class CalendarViewShellState extends State<CalendarViewShell> {
                   hourHeight: _hourHeight,
                   onDateChanged: _changeSelectedDate,
                   onBackToMonth: goToMonthView,
+                  events: calendarEvents,
                 ),
         ),
       ],

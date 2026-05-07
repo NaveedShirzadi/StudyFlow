@@ -236,17 +236,6 @@ Future<String> callGroq(String prompt) async {
   return data['choices'][0]['message']['content'];
 }
 
-String _formatTime(int hour, int minute) {
-  String suffix = hour < 12 ? 'AM' : 'PM';
-  int displayHour = hour == 0
-      ? 12
-      : hour > 12
-      ? hour - 12
-      : hour;
-  String displayMinute = minute.toString().padLeft(2, '0');
-  return '$displayHour:$displayMinute $suffix';
-}
-
 class _ScheduleGeneratorSheet extends StatefulWidget {
   const _ScheduleGeneratorSheet();
 
@@ -286,11 +275,64 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
     try {
       String response = await callGroq(prompt);
       setState(() => result = response);
+      _parseAndStoreEvents(response, days);
     } catch (e) {
       setState(() => result = 'Something went wrong: $e');
     }
 
     setState(() => isLoading = false);
+  }
+
+  void _parseAndStoreEvents(String schedule, int days) {
+    calendarEvents.clear();
+    DateTime startDate = DateTime.now();
+
+    RegExp dayRegex = RegExp(r'Day (\d+):');
+    RegExp timeRegex = RegExp(
+      r'(\d+):(\d+)\s*(AM|PM)\s*-\s*(\d+):(\d+)\s*(AM|PM)\s*[:\-]\s*(.+)',
+    );
+
+    List<String> lines = schedule.split('\n');
+    int currentDay = 0;
+
+    for (String line in lines) {
+      var dayMatch = dayRegex.firstMatch(line);
+      if (dayMatch != null) {
+        currentDay = int.tryParse(dayMatch.group(1)!) ?? 0;
+        continue;
+      }
+
+      var timeMatch = timeRegex.firstMatch(line);
+      if (timeMatch != null && currentDay > 0) {
+        int startHour = int.tryParse(timeMatch.group(1)!) ?? 0;
+        int startMinute = int.tryParse(timeMatch.group(2)!) ?? 0;
+        String startSuffix = timeMatch.group(3)!;
+        int endHour = int.tryParse(timeMatch.group(4)!) ?? 0;
+        int endMinute = int.tryParse(timeMatch.group(5)!) ?? 0;
+        String endSuffix = timeMatch.group(6)!;
+        String title = timeMatch.group(7)!.trim();
+
+        if (startSuffix == 'PM' && startHour != 12) startHour += 12;
+        if (startSuffix == 'AM' && startHour == 12) startHour = 0;
+        if (endSuffix == 'PM' && endHour != 12) endHour += 12;
+        if (endSuffix == 'AM' && endHour == 12) endHour = 0;
+
+        int durationMinutes =
+            (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
+
+        DateTime eventDate = startDate.add(Duration(days: currentDay - 1));
+        String dateKey =
+            '${eventDate.year}-${eventDate.month}-${eventDate.day}';
+
+        calendarEvents.putIfAbsent(dateKey, () => []);
+        calendarEvents[dateKey]!.add({
+          'title': title,
+          'startHour': startHour.toString(),
+          'startMinute': startMinute.toString(),
+          'durationMinutes': durationMinutes.toString(),
+        });
+      }
+    }
   }
 
   @override
