@@ -513,7 +513,7 @@ class _LoginPageState extends State<LoginPage> {
 
    if (result == 'Wrong Password' || result == 'Invalid email or password') {
 
-     _showSnackBar('Incorrect password. Please try again.', isError: true);
+     _showSnackBar('Invalid email or password. Please try again.', isError: true);
      return;
    }
 
