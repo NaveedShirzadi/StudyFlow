@@ -19,7 +19,10 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text('Menu', style: TextStyle(color: ThemeManager.contrastColor)),
+        title: Text(
+          'Menu',
+          style: TextStyle(color: ThemeManager.contrastColor),
+        ),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -37,18 +40,25 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                     height: _bubbleHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(35),
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                       ),
                       onPressed: () async {
                         await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const CalendarMenuUi()),
+                          MaterialPageRoute(
+                            builder: (context) => const CalendarMenuUi(),
+                          ),
                         );
                         // Refreshes contrast colors if coming back from calendar/settings
-                        if (mounted) setState(() {}); 
+                        if (mounted) setState(() {});
                       },
-                      child: const Text('Calendar & Schedule', style: TextStyle(fontSize: 18)),
+                      child: const Text(
+                        'Calendar & Schedule',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 50),
@@ -57,17 +67,24 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                     height: _bubbleHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(35),
+                        ),
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                       ),
                       onPressed: () async {
                         await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (context) => const StudyBoardMenuUI()),
+                          MaterialPageRoute(
+                            builder: (context) => const StudyBoardMenuUI(),
+                          ),
                         );
                         if (mounted) setState(() {});
                       },
-                      child: const Text('Study Mode', style: TextStyle(fontSize: 18)),
+                      child: const Text(
+                        'Study Mode',
+                        style: TextStyle(fontSize: 18),
+                      ),
                     ),
                   ),
                 ],
@@ -77,7 +94,18 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
               right: 16,
               bottom: 16,
               child: FloatingActionButton(
-                onPressed: () {},
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                    ),
+                    builder: (context) => const AiAssistantSheet(),
+                  );
+                },
                 child: const Icon(Icons.smart_toy),
               ),
             ),
