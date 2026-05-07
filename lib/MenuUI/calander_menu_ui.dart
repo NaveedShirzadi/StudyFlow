@@ -209,10 +209,10 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = 'key here';
+  String apiKey = 'api key here';
 
   var response = await http.post(
-    Uri.parse('link here'),
+    Uri.parse('api url here'),
     headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $apiKey',
@@ -251,9 +251,9 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   String result = '';
   bool isLoading = false;
   DateTime selectedStartDate = DateTime.now();
-  
-final ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier =
-    ValueNotifier({});
+
+  final ValueNotifier<Map<String, List<Map<String, String>>>>
+  calendarEventsNotifier = ValueNotifier({});
 
   void handleGenerate() async {
     List<String> subjects = subjectsController.text
