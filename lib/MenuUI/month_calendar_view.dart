@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'theme_manager.dart'; 
 
 class MonthCalendarView extends StatefulWidget {
   final DateTime selectedDate;
@@ -18,7 +19,6 @@ class MonthCalendarView extends StatefulWidget {
 
 class _MonthCalendarViewState extends State<MonthCalendarView> {
   static const int _initialPage = 5000;
-
   late final PageController _pageController;
   late DateTime _anchorMonth;
 
@@ -30,212 +30,131 @@ class _MonthCalendarViewState extends State<MonthCalendarView> {
   }
 
   DateTime _monthForPage(int page) {
-    final int offset = page - _initialPage;
-    return DateTime(_anchorMonth.year, _anchorMonth.month + offset, 1);
+    return DateTime(_anchorMonth.year, _anchorMonth.month + (page - _initialPage), 1);
   }
 
-  void _goToPreviousMonth() {
-    _pageController.previousPage(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _goToNextMonth() {
-    _pageController.nextPage(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeInOut,
-    );
-  }
-
-  void _handlePageChanged(int page) {
-    final DateTime month = _monthForPage(page);
-    final int safeDay = widget.selectedDate.day.clamp(
-      1,
-      DateUtils.getDaysInMonth(month.year, month.month),
-    );
-
-    final DateTime nextSelectedDate = DateTime(month.year, month.month, safeDay);
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      widget.onMonthChanged(nextSelectedDate);
-    });
-  }
+  void _goToPreviousMonth() => _pageController.previousPage(duration: const Duration(milliseconds: 220), curve: Curves.easeInOut);
+  void _goToNextMonth() => _pageController.nextPage(duration: const Duration(milliseconds: 220), curve: Curves.easeInOut);
 
   @override
   Widget build(BuildContext context) {
-    return PageView.builder(
-      controller: _pageController,
-      onPageChanged: _handlePageChanged,
-      itemBuilder: (context, page) {
-        final DateTime month = _monthForPage(page);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              IconButton(icon: Icon(Icons.chevron_left, color: ThemeManager.contrastColor), onPressed: _goToPreviousMonth),
+              Text(
+                '${_monthName(widget.selectedDate.month)} ${widget.selectedDate.year}',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: ThemeManager.contrastColor),
+              ),
+              IconButton(icon: Icon(Icons.chevron_right, color: ThemeManager.contrastColor), onPressed: _goToNextMonth),
+            ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _WeekdayLabel('M'), _WeekdayLabel('T'), _WeekdayLabel('W'),
+              _WeekdayLabel('T'), _WeekdayLabel('F'), _WeekdayLabel('S'), _WeekdayLabel('S'),
+            ],
+          ),
+        ),
+        Expanded(
+          child: PageView.builder(
+            controller: _pageController,
+            onPageChanged: (page) => widget.onMonthChanged(_monthForPage(page)),
+            itemBuilder: (context, page) {
+              return _MonthGrid(
+                month: _monthForPage(page),
+                selectedDate: widget.selectedDate,
+                onDateSelected: widget.onDateSelected,
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
 
-        return _MonthGridPage(
-          month: month,
-          selectedDate: widget.selectedDate,
-          onDateSelected: widget.onDateSelected,
-          onPreviousMonth: _goToPreviousMonth,
-          onNextMonth: _goToNextMonth,
+  String _monthName(int month) {
+    const List<String> names = [
+      'January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December',
+    ];
+    return names[month - 1];
+  }
+}
+
+class _MonthGrid extends StatelessWidget {
+  final DateTime month;
+  final DateTime selectedDate;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const _MonthGrid({required this.month, required this.selectedDate, required this.onDateSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    final firstDayOfMonth = DateTime(month.year, month.month, 1);
+    final leadingDays = (firstDayOfMonth.weekday - 1);
+
+    return GridView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 7, mainAxisSpacing: 8, crossAxisSpacing: 8,
+      ),
+      itemCount: 42,
+      itemBuilder: (context, index) {
+        final day = firstDayOfMonth.add(Duration(days: index - leadingDays));
+        final isCurrentMonth = day.month == month.month;
+        final isSelected = day.year == selectedDate.year && day.month == selectedDate.month && day.day == selectedDate.day;
+
+        return GestureDetector(
+          onTap: () => onDateSelected(day),
+          child: Container(
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? const Color.fromARGB(255, 47, 158, 249)
+                  : isCurrentMonth
+                      ? ThemeManager.contrastColor.withOpacity(0.1)
+                      : ThemeManager.contrastColor.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child: Text(
+                '${day.day}',
+                style: TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w600,
+                  color: isSelected ? Colors.white : isCurrentMonth ? ThemeManager.contrastColor : ThemeManager.contrastColor.withOpacity(0.4),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
   }
 }
 
-class _MonthGridPage extends StatelessWidget {
-  final DateTime month;
-  final DateTime selectedDate;
-  final ValueChanged<DateTime> onDateSelected;
-  final VoidCallback onPreviousMonth;
-  final VoidCallback onNextMonth;
-
-  const _MonthGridPage({
-    required this.month,
-    required this.selectedDate,
-    required this.onDateSelected,
-    required this.onPreviousMonth,
-    required this.onNextMonth,
-  });
-
-  DateTime _firstDayOfMonth(DateTime date) {
-    return DateTime(date.year, date.month, 1);
-  }
-
-  DateTime _gridStartDate(DateTime date) {
-    final DateTime first = _firstDayOfMonth(date);
-    final int weekdayOffset = first.weekday % 7;
-    return first.subtract(Duration(days: weekdayOffset));
-  }
+class _WeekdayLabel extends StatelessWidget {
+  final String label;
+  const _WeekdayLabel(this.label);
 
   @override
   Widget build(BuildContext context) {
-    final DateTime firstOfMonth = _firstDayOfMonth(month);
-    final DateTime startDate = _gridStartDate(month);
-    const List<String> weekdayLabels = [
-      'Sun',
-      'Mon',
-      'Tue',
-      'Wed',
-      'Thu',
-      'Fri',
-      'Sat',
-    ];
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: onPreviousMonth,
-                  icon: const Icon(Icons.chevron_left),
-                  tooltip: 'Previous month',
-                ),
-                Text(
-                  '${_monthName(firstOfMonth.month)} ${firstOfMonth.year}',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                IconButton(
-                  onPressed: onNextMonth,
-                  icon: const Icon(Icons.chevron_right),
-                  tooltip: 'Next month',
-                ),
-              ],
-            ),
-          ),
-          Row(
-            children: weekdayLabels
-                .map(
-                  (label) => Expanded(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(
-                          label,
-                          style: const TextStyle(fontWeight: FontWeight.w600),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
-          Expanded(
-            child: GridView.builder(
-              padding: const EdgeInsets.only(bottom: 12),
-              itemCount: 42,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 7,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-              ),
-              itemBuilder: (context, index) {
-                final DateTime day = startDate.add(Duration(days: index));
-                final bool isSelected =
-                    day.year == selectedDate.year &&
-                    day.month == selectedDate.month &&
-                    day.day == selectedDate.day;
-                final bool isCurrentMonth = day.month == firstOfMonth.month;
-
-                return InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: () => onDateSelected(day),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Theme.of(context).colorScheme.primary
-                          : isCurrentMonth
-                              ? const Color.fromARGB(20, 0, 0, 0)
-                              : const Color.fromARGB(10, 0, 0, 0),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${day.day}',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: isSelected
-                              ? Colors.white
-                              : isCurrentMonth
-                                  ? Colors.black
-                                  : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
+    return SizedBox(
+      width: 40,
+      child: Center(
+        child: Text(
+          label,
+          style: TextStyle(color: ThemeManager.contrastColor.withOpacity(0.6), fontWeight: FontWeight.bold),
+        ),
       ),
     );
-  }
-
-  String _monthName(int month) {
-    const List<String> names = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    return names[month - 1];
   }
 }

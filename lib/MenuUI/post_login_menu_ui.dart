@@ -1,36 +1,31 @@
 import 'package:flutter/material.dart';
 import 'calander_menu_ui.dart';
 import 'study_board_menu_ui.dart';
+import 'theme_manager.dart';
 
-class PostLoginMenuUI extends StatelessWidget {
+class PostLoginMenuUI extends StatefulWidget {
   const PostLoginMenuUI({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    const double bubbleWidth = 280;
-    const double bubbleHeight = 50;
+  State<PostLoginMenuUI> createState() => _PostLoginMenuUIState();
+}
 
+class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
+  static const double _bubbleWidth = 280;
+  static const double _bubbleHeight = 50;
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Menu'),
+        title: Text('Menu', style: TextStyle(color: ThemeManager.contrastColor)),
         centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       extendBodyBehindAppBar: true,
-      body: Container(
-        height: double.maxFinite,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 47, 158, 249),
-              Color.fromARGB(255, 197, 227, 252),
-            ],
-            begin: Alignment.bottomCenter,
-            end: Alignment.topCenter,
-          ),
-        ),
+      body: BackgroundWrapper(
         child: Stack(
           children: [
             Center(
@@ -38,52 +33,41 @@ class PostLoginMenuUI extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(
-                    width: bubbleWidth,
-                    height: bubbleHeight,
+                    width: _bubbleWidth,
+                    height: _bubbleHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(35),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                       ),
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const CalendarMenuUi(),
-                          ),
+                          MaterialPageRoute(builder: (context) => const CalendarMenuUi()),
                         );
+                        // Refreshes contrast colors if coming back from calendar/settings
+                        if (mounted) setState(() {}); 
                       },
-                      child: const Text(
-                        'Calendar View',
-                        style: TextStyle(fontSize: 18),
-                      ),
+                      child: const Text('Calendar & Schedule', style: TextStyle(fontSize: 18)),
                     ),
                   ),
                   const SizedBox(height: 50),
                   SizedBox(
-                    width: bubbleWidth,
-                    height: bubbleHeight,
+                    width: _bubbleWidth,
+                    height: _bubbleHeight,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(35),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(35)),
                         padding: const EdgeInsets.symmetric(horizontal: 24),
                       ),
-                      onPressed: () {
-                        Navigator.push(
+                      onPressed: () async {
+                        await Navigator.push(
                           context,
-                          MaterialPageRoute(
-                            builder: (context) => const StudyBoardMenuUI(),
-                          ),
+                          MaterialPageRoute(builder: (context) => const StudyBoardMenuUI()),
                         );
+                        if (mounted) setState(() {});
                       },
-                      child: const Text(
-                        'Study Mode',
-                        style: TextStyle(fontSize: 18),
-                      ),
+                      child: const Text('Study Mode', style: TextStyle(fontSize: 18)),
                     ),
                   ),
                 ],
@@ -93,9 +77,7 @@ class PostLoginMenuUI extends StatelessWidget {
               right: 16,
               bottom: 16,
               child: FloatingActionButton(
-                onPressed: () {
-                  // Add AI Assistant action here
-                },
+                onPressed: () {},
                 child: const Icon(Icons.smart_toy),
               ),
             ),
@@ -104,14 +86,4 @@ class PostLoginMenuUI extends StatelessWidget {
       ),
     );
   }
-}
-
-
-void main() {
-  runApp(
-    const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: PostLoginMenuUI(),
-    ),
-  );
 }

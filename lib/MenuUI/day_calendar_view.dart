@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'theme_manager.dart';
 
 class DayCalendarView extends StatefulWidget {
   final DateTime selectedDate;
@@ -7,11 +8,8 @@ class DayCalendarView extends StatefulWidget {
   final VoidCallback onBackToMonth;
 
   const DayCalendarView({
-    super.key,
-    required this.selectedDate,
-    required this.hourHeight,
-    required this.onDateChanged,
-    required this.onBackToMonth,
+    super.key, required this.selectedDate, required this.hourHeight,
+    required this.onDateChanged, required this.onBackToMonth,
   });
 
   @override
@@ -20,29 +18,18 @@ class DayCalendarView extends StatefulWidget {
 
 class _DayCalendarViewState extends State<DayCalendarView> {
   static const int _initialPage = 5000;
-
   late final PageController _pageController;
   late DateTime _anchorDate;
 
   @override
   void initState() {
     super.initState();
-    _anchorDate = DateTime(
-      widget.selectedDate.year,
-      widget.selectedDate.month,
-      widget.selectedDate.day,
-    );
+    _anchorDate = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day);
     _pageController = PageController(initialPage: _initialPage);
   }
 
-  DateTime _dateForPage(int page) {
-    final int offset = page - _initialPage;
-    return _anchorDate.add(Duration(days: offset));
-  }
-
   void _handlePageChanged(int page) {
-    final DateTime nextDate = _dateForPage(page);
-
+    final DateTime nextDate = _anchorDate.add(Duration(days: page - _initialPage));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       widget.onDateChanged(nextDate);
@@ -51,6 +38,8 @@ class _DayCalendarViewState extends State<DayCalendarView> {
 
   @override
   Widget build(BuildContext context) {
+    final Color textColor = ThemeManager.contrastColor;
+
     return Column(
       children: [
         Padding(
@@ -59,16 +48,13 @@ class _DayCalendarViewState extends State<DayCalendarView> {
             children: [
               TextButton.icon(
                 onPressed: widget.onBackToMonth,
-                icon: const Icon(Icons.calendar_view_month),
-                label: const Text('Back to month'),
+                icon: Icon(Icons.calendar_view_month, color: textColor),
+                label: Text('Back to month', style: TextStyle(color: textColor)),
               ),
               const Spacer(),
               Text(
                 _formattedDate(widget.selectedDate),
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: textColor),
               ),
             ],
           ),
@@ -78,10 +64,10 @@ class _DayCalendarViewState extends State<DayCalendarView> {
             controller: _pageController,
             onPageChanged: _handlePageChanged,
             itemBuilder: (context, page) {
-              final DateTime pageDate = _dateForPage(page);
               return _SingleDayTimeline(
-                date: pageDate,
+                date: _anchorDate.add(Duration(days: page - _initialPage)),
                 hourHeight: widget.hourHeight,
+                contrastColor: textColor,
               );
             },
           ),
@@ -91,30 +77,8 @@ class _DayCalendarViewState extends State<DayCalendarView> {
   }
 
   String _formattedDate(DateTime date) {
-    const List<String> weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    const List<String> months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-
+    const List<String> weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+    const List<String> months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     return '${weekdays[date.weekday - 1]}, ${months[date.month - 1]} ${date.day}';
   }
 }
@@ -122,11 +86,9 @@ class _DayCalendarViewState extends State<DayCalendarView> {
 class _SingleDayTimeline extends StatelessWidget {
   final DateTime date;
   final double hourHeight;
+  final Color contrastColor;
 
-  const _SingleDayTimeline({
-    required this.date,
-    required this.hourHeight,
-  });
+  const _SingleDayTimeline({required this.date, required this.hourHeight, required this.contrastColor});
 
   @override
   Widget build(BuildContext context) {
@@ -146,10 +108,7 @@ class _SingleDayTimeline extends StatelessWidget {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     _formatHour(index),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w600, color: contrastColor.withOpacity(0.7)),
                   ),
                 ),
               ),
@@ -157,12 +116,7 @@ class _SingleDayTimeline extends StatelessWidget {
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 2),
                   decoration: BoxDecoration(
-                    border: Border(
-                      top: BorderSide(
-                        color: Colors.grey.shade300,
-                        width: 1,
-                      ),
-                    ),
+                    border: Border(top: BorderSide(color: contrastColor.withOpacity(0.2), width: 1)),
                   ),
                 ),
               ),
@@ -174,11 +128,7 @@ class _SingleDayTimeline extends StatelessWidget {
   }
 
   String _formatHour(int hour) {
-    final int displayHour = hour == 0
-        ? 12
-        : hour > 12
-            ? hour - 12
-            : hour;
+    final int displayHour = hour == 0 ? 12 : hour > 12 ? hour - 12 : hour;
     final String suffix = hour < 12 ? 'AM' : 'PM';
     return '$displayHour:00 $suffix';
   }
