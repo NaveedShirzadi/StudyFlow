@@ -284,7 +284,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
   }
 
   void _parseAndStoreEvents(String schedule, int days) {
-    calendarEvents.clear();
+    calendarEventsNotifier.value = {};
     DateTime startDate = DateTime.now();
 
     RegExp dayRegex = RegExp(r'Day (\d+):');
@@ -324,13 +324,17 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
         String dateKey =
             '${eventDate.year}-${eventDate.month}-${eventDate.day}';
 
-        calendarEvents.putIfAbsent(dateKey, () => []);
-        calendarEvents[dateKey]!.add({
+        Map<String, List<Map<String, String>>> updated = Map.from(
+          calendarEventsNotifier.value,
+        );
+        updated.putIfAbsent(dateKey, () => []);
+        updated[dateKey]!.add({
           'title': title,
           'startHour': startHour.toString(),
           'startMinute': startMinute.toString(),
           'durationMinutes': durationMinutes.toString(),
         });
+        calendarEventsNotifier.value = updated;
       }
     }
   }

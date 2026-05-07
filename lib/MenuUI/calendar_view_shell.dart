@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'month_calendar_view.dart';
 import 'day_calendar_view.dart';
 
-Map<String, List<Map<String, String>>> calendarEvents = {};
+ValueNotifier<Map<String, List<Map<String, String>>>> calendarEventsNotifier =
+    ValueNotifier({});
+
+Map<String, List<Map<String, String>>> get calendarEvents =>
+    calendarEventsNotifier.value;
 
 enum CalendarDisplayMode { month, day }
 
@@ -81,12 +85,17 @@ class CalendarViewShellState extends State<CalendarViewShell> {
                   onDateSelected: _switchToDay,
                   onMonthChanged: _changeSelectedDate,
                 )
-              : DayCalendarView(
-                  selectedDate: _selectedDate,
-                  hourHeight: _hourHeight,
-                  onDateChanged: _changeSelectedDate,
-                  onBackToMonth: goToMonthView,
-                  events: calendarEvents,
+              : ValueListenableBuilder(
+                  valueListenable: calendarEventsNotifier,
+                  builder: (context, events, child) {
+                    return DayCalendarView(
+                      selectedDate: _selectedDate,
+                      hourHeight: _hourHeight,
+                      onDateChanged: _changeSelectedDate,
+                      onBackToMonth: goToMonthView,
+                      events: events,
+                    );
+                  },
                 ),
         ),
       ],
