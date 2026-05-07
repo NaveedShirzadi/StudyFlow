@@ -1,5 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+//fliimport 'lockin_page.dart';
+import 'focus_setup_page.dart';
 
 class StudyModePage extends StatefulWidget {
   const StudyModePage({super.key});
@@ -174,7 +176,7 @@ class _StudyModePageState extends State<StudyModePage> {
             boxShadow: [
 
               BoxShadow(
-                color: Colors.black.withOpacity(0.18),
+                color: Colors.black.withValues(alpha: 0.18),
                 blurRadius: 20,
                 offset: const Offset(0, 10),
               ),
@@ -224,7 +226,7 @@ class _StudyModePageState extends State<StudyModePage> {
 
                       decoration: BoxDecoration(
 
-                        color: Colors.white.withOpacity(0.18),
+                        color:Colors.white.withValues(alpha: 0.18),
 
                         borderRadius: BorderRadius.circular(25),
                       ),
@@ -246,22 +248,21 @@ class _StudyModePageState extends State<StudyModePage> {
                 ),
 
                 buildButton(
-                  title: "Timer",
-                  subtitle: "Pomodoro focus sessions",
-                  icon: Icons.timer,
+                  title: "Start Focus Session",
+                  subtitle: "Enter immersive lock in mode",
+                  icon: Icons.bolt,
 
                   onTap: () {
-                    // Timer page later
-                  },
-                ),
 
-                buildButton(
-                  title: "Lock In Mode",
-                  subtitle: "Minimize distractions",
-                  icon: Icons.lock,
+                    Navigator.push(
 
-                  onTap: () {
-                    // Lock In page later
+                      context,
+
+                      MaterialPageRoute(
+                        
+                              builder: (context) => const FocusSetupPage(),
+                      ),
+                    );
                   },
                 ),
 
