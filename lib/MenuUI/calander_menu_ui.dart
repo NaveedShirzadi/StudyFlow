@@ -10,7 +10,7 @@ import '../study_mode/study_mode_page.dart';
 import 'theme_manager.dart';
 
 final ValueNotifier<Map<String, List<Map<String, String>>>>
-    calendarEventsNotifier = ValueNotifier({});
+calendarEventsNotifier = ValueNotifier({});
 
 Color _contrastFor(Color color) {
   return color.computeLuminance() > 0.5 ? Colors.black : Colors.white;
@@ -80,16 +80,12 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
     } else if (value == 'Linked Accounts') {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LinkedAccountsMenuUi(),
-        ),
+        MaterialPageRoute(builder: (context) => const LinkedAccountsMenuUi()),
       );
     } else if (value == 'Study Mode') {
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const StudyModePage(),
-        ),
+        MaterialPageRoute(builder: (context) => const StudyModePage()),
       );
     }
   }
@@ -137,18 +133,16 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
             ? const Color.fromARGB(230, 255, 255, 255)
             : const Color.fromARGB(224, 0, 0, 0);
 
-        final Color bottomButtonColor =
-            contrast.withValues(alpha: contrast == Colors.black ? 0.08 : 0.14);
+        final Color bottomButtonColor = contrast.withValues(
+          alpha: contrast == Colors.black ? 0.08 : 0.14,
+        );
 
         PopupMenuItem<String> menuItem(String value, String label) {
           return PopupMenuItem(
             value: value,
             child: SizedBox(
               width: menuWidth,
-              child: Text(
-                label,
-                style: TextStyle(color: menuTextColor),
-              ),
+              child: Text(label, style: TextStyle(color: menuTextColor)),
             ),
           );
         }
@@ -248,10 +242,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
                                 ),
                                 child: IconButton(
                                   onPressed: _openAiAssistant,
-                                  icon: Icon(
-                                    Icons.smart_toy,
-                                    color: contrast,
-                                  ),
+                                  icon: Icon(Icons.smart_toy, color: contrast),
                                   tooltip: 'AI Assistant',
                                 ),
                               ),
@@ -272,7 +263,7 @@ class _CalendarMenuPageState extends State<CalendarMenuPage> {
 }
 
 Future<String> callGroq(String prompt) async {
-  String apiKey = 'YOUR_API_KEY';
+  String apiKey = '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';
 
   var response = await http.post(
     Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
@@ -434,9 +425,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
         return Container(
           decoration: BoxDecoration(
             color: surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
             left: 20,
@@ -499,22 +488,15 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
                     ),
                     subtitle: Text(
                       '${selectedStartDate.month}/${selectedStartDate.day}/${selectedStartDate.year}',
-                      style: TextStyle(
-                        color: onSurface.withValues(alpha: 0.7),
-                      ),
+                      style: TextStyle(color: onSurface.withValues(alpha: 0.7)),
                     ),
-                    trailing: Icon(
-                      Icons.calendar_today,
-                      color: theme.primary,
-                    ),
+                    trailing: Icon(Icons.calendar_today, color: theme.primary),
                     onTap: () async {
                       DateTime? picked = await showDatePicker(
                         context: context,
                         initialDate: selectedStartDate,
                         firstDate: DateTime.now(),
-                        lastDate: DateTime.now().add(
-                          const Duration(days: 365),
-                        ),
+                        lastDate: DateTime.now().add(const Duration(days: 365)),
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
@@ -544,10 +526,12 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: theme.primary,
                         foregroundColor: buttonTextColor,
-                        disabledBackgroundColor:
-                            theme.primary.withValues(alpha: 0.45),
-                        disabledForegroundColor:
-                            buttonTextColor.withValues(alpha: 0.7),
+                        disabledBackgroundColor: theme.primary.withValues(
+                          alpha: 0.45,
+                        ),
+                        disabledForegroundColor: buttonTextColor.withValues(
+                          alpha: 0.7,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
@@ -575,10 +559,7 @@ class _ScheduleGeneratorSheetState extends State<_ScheduleGeneratorSheet> {
                       ),
                       child: Text(
                         result,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: onSurface,
-                        ),
+                        style: TextStyle(fontSize: 14, color: onSurface),
                       ),
                     ),
                   ],
@@ -658,9 +639,7 @@ class AiAssistantSheetState extends State<AiAssistantSheet> {
           height: MediaQuery.of(context).size.height * 0.75,
           decoration: BoxDecoration(
             color: surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(24),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.only(
             left: 20,
@@ -723,28 +702,29 @@ class AiAssistantSheetState extends State<AiAssistantSheet> {
                     child: TextField(
                       controller: messageController,
                       style: TextStyle(color: onSurface),
-                      decoration: _themedInputDecoration(
-                        hintText: 'Ask me anything about studying...',
-                        onSurface: onSurface,
-                        primaryColor: theme.primary,
-                      ).copyWith(
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: onSurface.withValues(alpha: 0.28),
+                      decoration:
+                          _themedInputDecoration(
+                            hintText: 'Ask me anything about studying...',
+                            onSurface: onSurface,
+                            primaryColor: theme.primary,
+                          ).copyWith(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(
+                                color: onSurface.withValues(alpha: 0.28),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide(
+                                color: theme.primary,
+                                width: 2,
+                              ),
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: theme.primary,
-                            width: 2,
-                          ),
-                        ),
-                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
