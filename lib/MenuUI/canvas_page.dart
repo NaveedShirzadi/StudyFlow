@@ -1,157 +1,382 @@
 import 'package:flutter/material.dart';
 import 'canvas_api_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
-class RealCanvasPage extends StatefulWidget {
-  const RealCanvasPage({super.key});
+class CanvasPage extends StatefulWidget {
+  const CanvasPage({super.key});
 
   @override
-  State<RealCanvasPage> createState() => _RealCanvasPageState();
+  State<CanvasPage> createState() => _CanvasPageState();
 }
 
-class _RealCanvasPageState extends State<RealCanvasPage> {
-  final _domainController = TextEditingController();
-  final _tokenController = TextEditingController();
+class _CanvasPageState extends State<CanvasPage> {
+  final CanvasApiService api = CanvasApiService(
+    canvasDomain: 'https://csun.instructure.com',
+  );
 
-  List<dynamic> _courses = [];
-  bool _isLoading = false;
-  String _error = '';
+  List<dynamic> courses = [];
+  List<dynamic> assignments = [];
+  List<dynamic> files = [];
+
+  bool isLoadingFiles = false;
+  bool isLoadingCourses = false;
+  bool isLoadingAssignments = false;
+
+  String? errorMessage;
+  String? selectedCourseName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCourses();
+  }
 
   Future<void> _loadCourses() async {
     setState(() {
-      _isLoading = true;
-      _error = '';
-      _courses = [];
+      isLoadingCourses = true;
+      errorMessage = null;
     });
 
     try {
-      final service = CanvasApiService(
-        canvasDomain: _domainController.text.trim(),
-        accessToken: _tokenController.text.trim(),
-      );
-
-      final courses = await service.getCourses();
+      final result = await api.getCourses();
 
       setState(() {
-        _courses = courses;
-        _isLoading = false;
+        courses = result;
       });
     } catch (e) {
       setState(() {
-        _error = e.toString();
-        _isLoading = false;
+        errorMessage = e.toString();
+      });
+    } finally {
+      setState(() {
+        isLoadingCourses = false;
       });
     }
   }
 
-  Future<void> _showAssignments(dynamic course) async {
-    try {
-      final service = CanvasApiService(
-        canvasDomain: _domainController.text.trim(),
-        accessToken: _tokenController.text.trim(),
-      );
+  Future<void> _loadCourseContent(int courseId, String courseName) async {
+  setState(() {
+    isLoadingAssignments = true;
+    isLoadingFiles = true;
+    assignments = [];
+    files = [];
+    selectedCourseName = courseName;
+    errorMessage = null;
+  });
 
-      final assignments = await service.getAssignments(course['id']);
+  try {
+    final assignmentResult = await api.getAssignments(courseId);
+    final fileResult = await api.getCourseFiles(courseId);
 
-      if (!mounted) return;
+    setState(() {
+      assignments = assignmentResult;
+      files = fileResult;
+    });
+  } catch (e) {
+    setState(() {
+      errorMessage = e.toString();
+    });
+  } finally {
+    setState(() {
+      isLoadingAssignments = false;
+      isLoadingFiles = false;
+    });
+  }
+}
 
-      showModalBottomSheet(
-        context: context,
-        builder: (_) {
-          return ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              Text(
-                course['name'] ?? 'Course',
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...assignments.map((assignment) {
-                return ListTile(
-                  title: Text(assignment['name'] ?? 'Untitled Assignment'),
-                  subtitle: Text(
-                    assignment['due_at'] == null
-                        ? 'No due date'
-                        : 'Due: ${assignment['due_at']}',
-                  ),
+  void _showTokenDialog() {
+    final controller = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Enter Canvas Token'),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            decoration: const InputDecoration(
+              hintText: 'Paste your Canvas token here',
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final token = controller.text.trim();
+
+                if (token.isEmpty) {
+                  return;
+                }
+
+                await api.saveToken(token);
+
+                if (!mounted) return;
+
+                Navigator.pop(context);
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Canvas token saved')),
                 );
-              }),
-            ],
-          );
-        },
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading assignments: $e')),
-      );
-    }
+
+                _loadCourses();
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  @override
-  void dispose() {
-    _domainController.dispose();
-    _tokenController.dispose();
-    super.dispose();
+  Future<void> _disconnectCanvas() async {
+    await api.deleteToken();
+
+    setState(() {
+      courses = [];
+      assignments = [];
+      selectedCourseName = null;
+      errorMessage = null;
+    });
+
+    if (!mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Canvas disconnected')),
+    );
   }
 
+  Future<void> _openCanvasFile(dynamic file) async {
+  final fileUrl = file['url'];
+
+  if (fileUrl == null || fileUrl.toString().isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('No file URL available')),
+    );
+    return;
+  }
+
+  final uri = Uri.parse(fileUrl);
+
+  if (!await launchUrl(
+    uri,
+    mode: LaunchMode.externalApplication,
+  )) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Could not open file')),
+    );
+  }
+}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Real Canvas Integration'),
+        title: const Text('Canvas'),
+        actions: [
+          IconButton(
+            onPressed: _showTokenDialog,
+            icon: const Icon(Icons.key),
+            tooltip: 'Add Canvas Token',
+          ),
+          IconButton(
+            onPressed: _disconnectCanvas,
+            icon: const Icon(Icons.logout),
+            tooltip: 'Disconnect Canvas',
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _domainController,
-              decoration: const InputDecoration(
-                labelText: 'Canvas domain',
-                hintText: 'https://yourcollege.instructure.com',
-              ),
+            const Text(
+              'To connect Canvas, go to Canvas → Account → Settings → Approved Integrations → New Access Token. Then paste your token here.',
             ),
-            TextField(
-              controller: _tokenController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'Canvas access token',
-              ),
-            ),
-            const SizedBox(height: 16),
+
+            const SizedBox(height: 12),
+
             ElevatedButton(
-              onPressed: _isLoading ? null : _loadCourses,
+              onPressed: _showTokenDialog,
               child: const Text('Connect Canvas'),
             ),
-            const SizedBox(height: 16),
-            if (_isLoading) const CircularProgressIndicator(),
-            if (_error.isNotEmpty)
+
+            const SizedBox(height: 20),
+
+            if (errorMessage != null)
               Text(
-                _error,
+                errorMessage!,
                 style: const TextStyle(color: Colors.red),
               ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _courses.length,
-                itemBuilder: (context, index) {
-                  final course = _courses[index];
 
-                  return Card(
-                    child: ListTile(
-                      title: Text(course['name'] ?? 'Unnamed Course'),
-                      subtitle: Text('Course ID: ${course['id']}'),
-                      trailing: const Icon(Icons.arrow_forward_ios),
-                      onTap: () => _showAssignments(course),
+            if (isLoadingCourses)
+              const CircularProgressIndicator()
+            else
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: _buildCoursesList(),
                     ),
-                  );
-                },
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildAssignmentsList(),
+                    ),
+                    Expanded(
+                      child: _buildFilesList(),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
+        ),
+      );
+    }
+
+  Widget _buildCoursesList() {
+    if (courses.isEmpty) {
+      return const Center(
+        child: Text('No courses loaded yet. Connect Canvas first.'),
+      );
+    }
+
+    return ListView.builder(
+      itemCount: courses.length,
+      itemBuilder: (context, index) {
+        final course = courses[index];
+
+        final courseName = course['name'] ?? 'Unnamed Course';
+        final courseId = course['id'];
+
+        return Card(
+          child: ListTile(
+            title: Text(courseName),
+            subtitle: Text('Course ID: $courseId'),
+            onTap: () {
+              if (courseId != null) {
+                _loadCourseContent(courseId, courseName);
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAssignmentsList() {
+    if (selectedCourseName == null) {
+      return const Center(
+        child: Text('Select a course to view assignments.'),
+      );
+    }
+
+    if (isLoadingAssignments) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    if (assignments.isEmpty) {
+      return Center(
+        child: Text('No assignments found for $selectedCourseName.'),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Assignments for $selectedCourseName',
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ListView.builder(
+            itemCount: assignments.length,
+            itemBuilder: (context, index) {
+              final assignment = assignments[index];
+
+              final name = assignment['name'] ?? 'Unnamed Assignment';
+              final dueAt = assignment['due_at'] ?? 'No due date';
+
+              return Card(
+                child: ListTile(
+                  title: Text(name),
+                  subtitle: Text('Due: $dueAt'),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFilesList() {
+  if (selectedCourseName == null) {
+    return const Center(
+      child: Text('Select a course to view files.'),
+    );
+  }
+
+  if (isLoadingFiles) {
+    return const Center(
+      child: CircularProgressIndicator(),
+    );
+  }
+
+  if (files.isEmpty) {
+    return Center(
+      child: Text('No files found for $selectedCourseName.'),
+    );
+  }
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        'Files for $selectedCourseName',
+        style: const TextStyle(
+          fontSize: 18,
+          fontWeight: FontWeight.bold,
         ),
       ),
-    );
+      const SizedBox(height: 12),
+      Expanded(
+        child: ListView.builder(
+          itemCount: files.length,
+          itemBuilder: (context, index) {
+            final file = files[index];
+
+            final fileName =
+                file['display_name'] ?? file['filename'] ?? 'Unnamed File';
+
+            final contentType = file['content-type'] ?? 'Unknown type';
+
+            return Card(
+              child: ListTile(
+                leading: const Icon(Icons.insert_drive_file),
+                title: Text(fileName),
+                subtitle: Text(contentType),
+                trailing: const Icon(Icons.open_in_new),
+                onTap:() {
+                  _openCanvasFile(file);
+                },
+              ),
+            );
+          },
+        ),
+      ),
+    ],
+  );
   }
 }

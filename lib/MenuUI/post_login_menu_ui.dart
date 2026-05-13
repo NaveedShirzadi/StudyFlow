@@ -3,7 +3,7 @@ import 'calander_menu_ui.dart';
 import '../study_mode/study_mode_page.dart';
 import 'theme_manager.dart';
 import 'canvas_page.dart';
-
+import 'study_board_menu_ui.dart';
 
 class PostLoginMenuUI extends StatefulWidget {
   const PostLoginMenuUI({super.key});
@@ -115,8 +115,35 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                         ),
                       ),
 
-                      const SizedBox(height: 50),
+                    const SizedBox(height: 50),
+                    SizedBox(
+                      width: _bubbleWidth,
+                      height: _bubbleHeight,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(35),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 24),
+                        ),
+                        onPressed: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const StudyBoardMenuUI(),
+                            ),
+                          );
 
+                          if (mounted) setState(() {});
+                        },
+                        child: const Text(
+                          'Tasks & PDF Uploader',
+                          style: TextStyle(fontSize: 18),
+                        ),
+                      ),
+                    ),
+
+                      const SizedBox(height: 50),
                       SizedBox(
                         width: _bubbleWidth,
                         height: _bubbleHeight,
@@ -131,7 +158,7 @@ class _PostLoginMenuUIState extends State<PostLoginMenuUI> {
                             await Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const RealCanvasPage(),
+                                builder: (context) => const CanvasPage(),
                               ),
                             );
                             if (mounted) setState(() {});

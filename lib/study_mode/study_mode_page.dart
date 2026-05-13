@@ -1,7 +1,8 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-//fliimport 'lockin_page.dart';
+//import 'lockin_page.dart';
 import 'focus_setup_page.dart';
+
 
 class StudyModePage extends StatefulWidget {
   const StudyModePage({super.key});
@@ -272,8 +273,8 @@ class _StudyModePageState extends State<StudyModePage> {
                   icon: Icons.bar_chart,
 
                   onTap: () {
-                    // Progress page later
-                  },
+                     //come back and finish this later
+                  }
                 ),
 
                 buildButton(

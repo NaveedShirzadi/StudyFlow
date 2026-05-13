@@ -539,6 +539,60 @@ class _LoginPageState extends State<LoginPage> {
     MaterialPageRoute(builder: (_) => const PostLoginMenuUI())
     );
 } 
+Future<void> resetPassword() async {
+  final emailController = TextEditingController();
+
+  await showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text('Reset Password'),
+        content: TextField(
+          controller: emailController,
+          keyboardType: TextInputType.emailAddress,
+          decoration: const InputDecoration(
+            hintText: 'Enter your email',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              final email = emailController.text.trim();
+
+              if (email.isEmpty) return;
+
+              try {
+                await FirebaseAuth.instance.sendPasswordResetEmail(
+                  email: email,
+                );
+
+                if (context.mounted) {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Password reset link sent! Check your email.'),
+                    ),
+                  );
+                }
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                  );
+                }
+              }
+            },
+            child: const Text('Send Link'),
+          ),
+        ],
+      );
+    },
+  );
+}
 
  void _onCreateAccount() {
    Navigator.push(
@@ -697,9 +751,24 @@ class _LoginPageState extends State<LoginPage> {
                    ),
                  ),
 
+                SizedBox(height: size.height * 0.02),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: resetPassword,
+                    child: const Text(
+                      'Forgot Password?',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        decoration: TextDecoration.underline,
+                        decorationColor: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
 
                  SizedBox(height: size.height * 0.02),
-
 
                  // Continue Button
                  CupertinoButton(

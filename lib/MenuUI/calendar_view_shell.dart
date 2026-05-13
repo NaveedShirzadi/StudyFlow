@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'month_calendar_view.dart';
 import 'day_calendar_view.dart';
 import 'theme_manager.dart';
-import 'calander_menu_ui.dart'; // FIX: Import to access global calendarEventsNotifier
+// FIX: Import to access global calendarEventsNotifier
 
 enum CalendarDisplayMode { month, day }
 

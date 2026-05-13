@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter/services.dart'; 
+import 'study_session_service.dart';
 
 class LockInPage extends StatefulWidget {
 
@@ -76,6 +77,10 @@ class _LockInPageState extends State<LockInPage> {
           setState(() {
 
             if (!isBreak) {
+              StudySessionService.saveStudySession(
+              minutesStudied: widget.sessionMinutes,
+              ambience: widget.ambience,
+              );
 
               isBreak = true;
               seconds = breakTime;
